@@ -109,7 +109,7 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
     'font-size:20px;line-height:23px;color:#544e44;opacity:0;transition:opacity .3s ease-out;white-space:nowrap;will-change:opacity;'
   truthLayer.appendChild(truthZh)
 
-  // ── 上层：甜言（可撕）。整层位置固定 —— 折痕方向由起手拖拽方向决定
+  // ── 上层：甜言（可撕）。整层位置固定 —— 只允许水平右→左揭开，折痕恒竖直
   const stickerLeft = (LAYER_W - STICKER_W) / 2
   const lieLayer = document.createElement('div')
   lieLayer.style.cssText =
@@ -149,20 +149,12 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
   let raf = 0
   let timeScale = 1
   let dragging = false
-  let pointerStartX = 0
-  let pointerStartY = 0
-  let prevX = 0 // 上一次 pointermove 的位置（用于增量计算 + 跟踪当前方向）
-  let prevY = 0
+  let prevX = 0 // 上一次 pointermove 的 x（仅用水平增量）
   let velocity = 0 // peel 单位/秒
   let lastMoveT = 0
   let settled = false // 静止态（避免 raf 浪费）
-  // 拖拽行程换算：拽这么远 = 揭完。约等于一个贴纸宽度。
+  // 拖拽行程换算：水平拽这么远 = 揭完。约等于一个贴纸宽度。
   const PULL_DIST = 280
-  // 起手拖拽方向锁定（决定整层 tilt 角度）。
-  //   dragAngleDeg：相对"纯左方向"的偏角；上偏为正、下偏为负
-  //   锁定逻辑：移动超过 8px 才锁，避免微小抖动设错方向
-  let dragAngleDeg = 0
-  let dragAngleLocked = false
 
   function applyText() {
     titleEn.textContent = params.titleEn
@@ -196,19 +188,14 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
       '</span>'
   }
 
-  // peel 状态 → 可视变换：折痕从右向左推进；
+  // peel 状态 → 可视变换：竖直折痕从右向左推进（只允许水平右→左揭开）；
   //   - stuck 用 clip-path 从右边裁掉已撕走的宽度
-  //   - flap 紧贴 fold 左侧、宽度 = 已撕走宽度；绕折痕做 rotateY(90°→180°)，
-  //     右端先朝观察者升起再折回，背面更暗
-  // 中文译文在 peel ≥ 0.95 完成态二态切换
-  // 折痕几何：方向 = 与起手拖拽方向垂直；位置 = 由 peel 在垂直方向上推进。
-  // 贴纸本身位置固定（lieLayer 不旋转/不平移）；只是 stuck/shadow/flap 的
-  // clip-path 折痕角度跟着拖拽方向变。flap 绕折痕轴 3D 翻转 90°→180°。
+  //   - flap 紧贴 fold 右侧，绕竖直折痕做 rotateY(90°→180°)，右端升起再折回、背面更暗
+  // 中文译文在 peel ≥ 0.95 完成态二态切换；贴纸本身位置固定（lieLayer 不旋转/不平移）。
   function applyPeel() {
     const p = Math.max(0, Math.min(1, params.peel))
-    // 折痕与纯左方向的夹角（=起手方向偏角，clamp 防过宽过窄贴纸出怪样）。
-    // 乘 min(1, p*4) 让 peel→0 时角度顺滑回正
-    const phiDeg = Math.max(-55, Math.min(55, dragAngleDeg)) * Math.min(1, p * 4)
+    // 只允许水平右→左揭开 → 折痕恒竖直（phi=0），下方几何随之退化为直折
+    const phiDeg = 0
     const phiRad = (phiDeg * Math.PI) / 180
     const tan = Math.tan(phiRad)
     const halfH = STICKER_H / 2
@@ -254,52 +241,24 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
     truthZh.style.opacity = peeled ? '.5' : '0'
   }
 
-  // ── 拖拽：起手锁定初始方向；之后每次 pointermove 都用瞬时方向缓动更新 dragAngleDeg，
-  //   折痕角度跟着用力方向走。peel 按"增量位移在当前方向上的投影"累加（反向走可回退）。
+  // ── 拖拽：只允许水平右→左揭开。peel 按水平增量累加（向左推进、向右回退），竖直移动忽略。
   const onPointerDown = (e: PointerEvent) => {
     if (params.peel >= 1) return // 已完成
     e.preventDefault()
     dragging = true
     settled = false
-    pointerStartX = e.clientX
-    pointerStartY = e.clientY
     prevX = e.clientX
-    prevY = e.clientY
     velocity = 0
     lastMoveT = performance.now()
-    dragAngleDeg = 0
-    dragAngleLocked = false
     lieLayer.setPointerCapture?.(e.pointerId)
     lieLayer.style.cursor = 'grabbing'
   }
   const onPointerMove = (e: PointerEvent) => {
     if (!dragging) return
-    // 增量 delta（向左为正、向上为正）
+    // 只认水平增量（向左为正 → 揭开推进；向右 → 回退）。竖直移动忽略。
     const dxInc = prevX - e.clientX
-    const dyInc = prevY - e.clientY
     prevX = e.clientX
-    prevY = e.clientY
-    const incMag = Math.hypot(dxInc, dyInc)
-    // 1) 方向：起手锁定后，之后每帧根据瞬时方向**缓动**更新（支持中途换向，贴纸形状跟着变）
-    if (!dragAngleLocked) {
-      const totalDx = pointerStartX - e.clientX
-      const totalDy = pointerStartY - e.clientY
-      if (Math.hypot(totalDx, totalDy) > 8) {
-        dragAngleDeg = (Math.atan2(totalDy, totalDx) * 180) / Math.PI
-        dragAngleLocked = true
-      }
-    } else if (incMag > 1.2) {
-      // 仅当增量大到一定阈值才更新方向，过滤微抖
-      const instDeg = (Math.atan2(dyInc, dxInc) * 180) / Math.PI
-      let diff = instDeg - dragAngleDeg
-      while (diff > 180) diff -= 360
-      while (diff < -180) diff += 360
-      dragAngleDeg += diff * 0.18 // 缓动率：换向时 ~270ms 跟上新方向
-    }
-    // 2) peel：把增量位移投影到当前方向上累加 → 中途换向不会让 peel 跳变
-    const rad = (dragAngleDeg * Math.PI) / 180
-    const incProj = dragAngleLocked ? dxInc * Math.cos(rad) + dyInc * Math.sin(rad) : dxInc
-    const newPeel = Math.max(0, Math.min(1, params.peel + incProj / PULL_DIST))
+    const newPeel = Math.max(0, Math.min(1, params.peel + dxInc / PULL_DIST))
     const now = performance.now()
     const dt = Math.max(1, now - lastMoveT) / 1000
     velocity = (newPeel - params.peel) / dt
@@ -376,8 +335,6 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
       velocity = 0
       dragging = false
       settled = false
-      dragAngleDeg = 0
-      dragAngleLocked = false
       applyPeel()
     },
     getParams() {
