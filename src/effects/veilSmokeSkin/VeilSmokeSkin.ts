@@ -1,7 +1,7 @@
 import type { EffectHandle } from '../types'
 import type { VeilSmokeSkinParams } from './params'
-import bgAImg from './bgA.png'
-import bgBImg from './bgB.png'
+import bgAVideo from './bgA.mp4'
+import bgBVideo from './bgB.mp4'
 import smokeTextureUrl from './smoke.png'
 
 const DW = 375
@@ -20,18 +20,46 @@ export function mountVeilSmokeSkin(
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;'
   container.appendChild(root)
 
-  // 背景：state A / B 各一张整屏图，按 state 交叉淡化
-  function mkBg(src: string): HTMLImageElement {
-    const el = document.createElement('img')
+  // 背景：state A / B 各一段整屏视频，按 state 交叉淡化
+  function mkBg(src: string): HTMLVideoElement {
+    const el = document.createElement('video')
     el.src = src
+    el.autoplay = true
+    el.loop = true
+    el.playsInline = true
+    el.setAttribute('playsinline', '')
+    el.setAttribute('webkit-playsinline', '')
     el.style.cssText =
       'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;z-index:0;transition:opacity .7s ease;'
     return el
   }
-  const bgA = mkBg(bgAImg)
-  const bgB = mkBg(bgBImg)
+  const bgA = mkBg(bgAVideo)
+  const bgB = mkBg(bgBVideo)
   root.appendChild(bgA)
   root.appendChild(bgB)
+  // 背景视频带声播放，音量随可见度交叉淡入（A∝1-state、B∝state，见 loop）。
+  // 浏览器拦截带声 autoplay → 降级静音播 + 首次交互（点击/触摸/按键）解除静音
+  const bgVids: HTMLVideoElement[] = [bgA, bgB]
+  for (const v of bgVids) {
+    v.muted = false
+    v.volume = 0
+  }
+  Promise.all(bgVids.map((v) => v.play().then(() => true).catch(() => false))).then((oks) => {
+    if (oks.every(Boolean)) return
+    for (const v of bgVids) {
+      v.muted = true
+      void v.play().catch(() => {})
+    }
+    const unmute = () => {
+      for (const v of bgVids) {
+        v.muted = false
+        void v.play().catch(() => {})
+      }
+    }
+    window.addEventListener('click', unmute, { once: true })
+    window.addEventListener('touchstart', unmute, { once: true, passive: true })
+    window.addEventListener('keydown', unmute, { once: true })
+  })
 
   // 压暗（顶轻、底重，保证 Kalam 区可读）
   const scrim = document.createElement('div')
@@ -288,6 +316,10 @@ export function mountVeilSmokeSkin(
     drawSmoke()
     tickParticles()
     drawParticles()
+    // 背景视频音量随 state 交叉淡入（切换时 state 由 tweenState 连续过渡，故平滑）
+    const sv = Math.max(0, Math.min(1, params.state))
+    bgA.volume = 1 - sv
+    bgB.volume = sv
   }
 
   // ── state 自驱动平滑（click 触发瞬间，state 从当前值动画到目标值；Lab 拖滑杆时直接设）
