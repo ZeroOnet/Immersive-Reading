@@ -15,7 +15,10 @@ interface Word {
   el: HTMLElement
   furniture: boolean
   seed: number
-  pushX: number // 当前被心形推开的横向位移
+  dispMag: number // 沿逃离方向的当前位移量（px）
+  escUx: number // 锁定的逃离方向单位向量 x（0,0 = 未进入让位）
+  escUy: number
+  rot: number // 当前倾斜角（度）
 }
 
 // 《爱丽丝梦游仙境》阅读页皮肤（Figma 14:765）：Wonderland 静态背景 + 艺术字标题；
@@ -170,11 +173,14 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
   let hitDone = false
   const PROJ_DURATION = 1.6 // 秒（更紧凑的飞行节奏）
   const PROJ_ARC = 32 // 抛物线峰值高度（向上 = -y）
-  const PROJ_HALF_W = 18 // 飞行物半宽估值（与图标渲染尺寸接近）
-  const PUSH_RADIUS = 90 // 飞行物周围 x 距离 < 这个值 → 开始推开
-  const PUSH_VERT = 26 // 飞行物周围 y 距离 < 这个值 → 算同一行
-  const PUSH_GAP = 8 // 词推开后与飞行物之间的留白
-  const PUSH_EASE = 0.55 // 推开 ease 系数（更跟手）
+  const PROJ_HALF_W = 12 // 飞行物包围盒半尺寸兜底（无法测量时）
+  const PUSH_GAP = 6 // 让位后单词与飞行物之间的最小留白
+  const PUSH_ANTICIPATE = 36 // 提前量：飞行物距严格接触还有这么远就开始让位（更顺滑、留呼吸空间）
+  const PUSH_EASE = 0.34 // 位移 ease 系数
+  const ROT_EASE = 0.18 // 旋转 ease 系数
+  const ROT_GAIN = 0.6 // 每 px 位移对应的倾斜量（封顶前）
+  const ROT_MAX = 20 // 让位时单词最大倾斜角（度）
+  let lastProjAng = 0 // 飞行物当前行进角（用于其旋转后 AABB 膨胀）
 
   function measure() {
     // 容器尺寸变化时同步缩放 stage（卡牌按设计稿大小渲染、再按容器宽度等比缩放）
@@ -196,7 +202,8 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
       const sp = document.createElement('span')
       sp.textContent = tok
       sp.style.display = 'inline-block'
-      sp.style.transformOrigin = 'center bottom'
+      // 绕中心旋转：让位时词倾斜、且旋转不移动包围盒中心（让位零重叠几何成立的前提）
+      sp.style.transformOrigin = 'center center'
       bodyP.appendChild(sp)
       const bare = tok.replace(/[^A-Za-z']/g, '')
       // 所有正文词都可点击 → 飞行+穿透+spring 回归
@@ -227,7 +234,7 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
           diamond.style.opacity = '1'
         }
       })
-      words.push({ el: sp, furniture: bare.length >= minLen, seed: Math.random() * 6.28, pushX: 0 })
+      words.push({ el: sp, furniture: bare.length >= minLen, seed: Math.random() * 6.28, dispMag: 0, escUx: 0, escUy: 0, rot: 0 })
     }
   }
   function applyScrim() {
@@ -269,6 +276,7 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
         const lerpY = startY + (endY - startY) * projT
         projY = lerpY + arcDir * Math.sin(projT * Math.PI) * PROJ_ARC
         const ang = rest.rot + (Math.atan2(endY - startY, endX - startX) * (180 / Math.PI) - rest.rot) * projT
+        lastProjAng = ang
         const el = projectileKind === 'heart' ? heart : diamond
         el.style.transform = `translate(${projX.toFixed(1)}px,${projY.toFixed(1)}px) rotate(${ang.toFixed(1)}deg)`
         el.style.opacity = '1'
@@ -301,43 +309,116 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
     updateIconRest('heart')
     updateIconRest('diamond')
 
-    // 文字路径排除（散开后不回归原位）：
-    //   · 方向**固定**为「远离触发词」(sign 取 wx - targetX) → 不再因 dx 变号反向抖
-    //   · 推力 = 飞行物半宽 + 该词半宽 + 留白，保证飞行物正中压上词时零重叠
-    //   · ease 只允许放大 |pushX|（同向更远）→ 词被推开后不缩回
-    //   · 飞行物远离 (pushTarget=0) 时 pushX 不变 → 散开姿态保持
+    // ── 文字让位：飞行物推开沿途单词（2D 径向 + 旋转，全程零重叠，飞过后归位）──
+    //   · 进入影响范围时，每个词锁定一个「逃离方向」= 径向远离飞行物（含触发词本身）
+    //   · 位移量 = 让该词包围盒与飞行物包围盒分离所需的最小距离（任一轴脱离即不重叠）
+    //   · ease 平滑趋近；若某帧 ease 滞后仍重叠 → 硬性补足到严格分离量 → 渲染帧零重叠
+    //   · 词按位移量倾斜旋转（叠加每词随机扰动），不再强制正立
+    //   · 飞行物离开 / 结束后位移与旋转 ease 回 0 → 单词自然归位
     const rootR2 = root.getBoundingClientRect()
+    // 飞行物当前包围盒半宽/半高（计入其行进旋转后的 AABB 膨胀）
+    let projHalfX = PROJ_HALF_W
+    let projHalfY = PROJ_HALF_W
+    if (projectileKind) {
+      const pe = projectileKind === 'heart' ? heart : diamond
+      const pw = pe.offsetWidth || PROJ_HALF_W * 2
+      const ph = pe.offsetHeight || PROJ_HALF_W * 2
+      const pa = (lastProjAng * Math.PI) / 180
+      const pc = Math.abs(Math.cos(pa))
+      const ps = Math.abs(Math.sin(pa))
+      projHalfX = (pw * pc + ph * ps) / 2
+      projHalfY = (pw * ps + ph * pc) / 2
+    }
+    // 沿锁定方向 (ux,uy) 把词中心从 base 移到「与飞行物分离」所需的最小位移（任一轴脱离即可）
+    const reqMag = (cX: number, cY: number, bx: number, by: number, ux: number, uy: number): number => {
+      if (Math.abs(bx) >= cX || Math.abs(by) >= cY) return 0 // 已分离
+      let mx = Infinity
+      let my = Infinity
+      if (ux > 0) mx = (cX - bx) / ux
+      else if (ux < 0) mx = (-cX - bx) / ux
+      if (uy > 0) my = (cY - by) / uy
+      else if (uy < 0) my = (-cY - by) / uy
+      if (mx < 0) mx = Infinity
+      if (my < 0) my = Infinity
+      const m = Math.min(mx, my)
+      return Number.isFinite(m) ? m : 0
+    }
     for (const w of words) {
-      // 触发词本身不被推开 —— 抛物线就是要穿过它
-      if (w.el === targetWord) {
-        w.el.style.transform = Math.abs(w.pushX) > 0.05 ? `translateX(${w.pushX.toFixed(2)}px)` : ''
+      // 空闲态快速跳过（无飞行物、未让位、已正立）→ 不读 rect，省布局开销
+      if (!projectileKind && w.dispMag === 0 && w.escUx === 0 && w.escUy === 0 && Math.abs(w.rot) < 0.05) {
+        if (w.el.style.transform) w.el.style.transform = ''
         continue
       }
-      let pushTarget = 0
-      if (projectileKind) {
-        const wRect = w.el.getBoundingClientRect()
-        const wx = wRect.left + wRect.width / 2 - rootR2.left
-        const wy = wRect.top + wRect.height / 2 - rootR2.top
-        const dy = wy - projY
-        if (Math.abs(dy) < PUSH_VERT) {
-          const dx = wx - projX
-          const adx = Math.abs(dx)
-          if (adx < PUSH_RADIUS) {
-            // 方向：以触发词为锚，左侧词向左、右侧词向右（动画期间不翻转）
-            const sign = wx >= targetX ? 1 : -1
-            // 让出空间 = 飞行物半宽 + 这个词的半宽 + 留白 → 零重叠保证
-            const clearance = PROJ_HALF_W + wRect.width / 2 + PUSH_GAP
-            const verticalFalloff = 1 - Math.abs(dy) / PUSH_VERT
-            const horizontalFalloff = 1 - adx / PUSH_RADIUS
-            pushTarget = sign * clearance * horizontalFalloff * verticalFalloff
-          }
+      const rect = w.el.getBoundingClientRect()
+      const dxNow = w.dispMag * w.escUx
+      const dyNow = w.dispMag * w.escUy
+      // 当前 rect 已含 translate(dxNow,dyNow) 与绕中心的 rotate → 回推静止中心
+      const rcx = rect.left + rect.width / 2 - rootR2.left - dxNow
+      const rcy = rect.top + rect.height / 2 - rootR2.top - dyNow
+      // 词静止包围盒半宽/半高，按当前旋转角膨胀为 AABB
+      const hw0 = (w.el.offsetWidth || 16) / 2
+      const hh0 = (w.el.offsetHeight || 20) / 2
+      const wa = (w.rot * Math.PI) / 180
+      const wc = Math.abs(Math.cos(wa))
+      const ws = Math.abs(Math.sin(wa))
+      const hw = hw0 * wc + hh0 * ws
+      const hh = hh0 * wc + hw0 * ws
+
+      const clearX = hw + projHalfX + PUSH_GAP // 严格分离阈值
+      const clearY = hh + projHalfY + PUSH_GAP
+      const clearXa = clearX + PUSH_ANTICIPATE // 含提前量的让位目标
+      const clearYa = clearY + PUSH_ANTICIPATE
+
+      const baseDx = rcx - projX
+      const baseDy = rcy - projY
+
+      // 进入影响范围 → 锁定逃离方向（径向远离飞行物；近乎重合时退化为横向让位 + 微上扬）
+      if (projectileKind && w.escUx === 0 && w.escUy === 0 && Math.abs(baseDx) < clearXa && Math.abs(baseDy) < clearYa) {
+        let ex = baseDx
+        let ey = baseDy
+        let len = Math.hypot(ex, ey)
+        if (len < 1) {
+          ex = rcx >= targetX ? 1 : -1
+          ey = -0.2
+          len = Math.hypot(ex, ey)
+        }
+        w.escUx = ex / len
+        w.escUy = ey / len
+      }
+
+      const engaged = w.escUx !== 0 || w.escUy !== 0
+      let targetM = 0
+      if (projectileKind && engaged) targetM = reqMag(clearXa, clearYa, baseDx, baseDy, w.escUx, w.escUy)
+      w.dispMag += (targetM - w.dispMag) * PUSH_EASE
+      // 硬保证：ease 滞后仍重叠时，补足到严格分离量 → 本帧渲染零重叠
+      if (projectileKind && engaged) {
+        const cxp = baseDx + w.dispMag * w.escUx
+        const cyp = baseDy + w.dispMag * w.escUy
+        if (Math.abs(cxp) < clearX && Math.abs(cyp) < clearY) {
+          const mStrict = reqMag(clearX, clearY, baseDx, baseDy, w.escUx, w.escUy)
+          if (mStrict > w.dispMag) w.dispMag = mStrict
         }
       }
-      // 只放大同向 |pushX|；不缩、不反向 → 词散开后定格
-      if (pushTarget !== 0 && Math.abs(pushTarget) > Math.abs(w.pushX) && Math.sign(pushTarget) === (w.pushX === 0 ? Math.sign(pushTarget) : Math.sign(w.pushX))) {
-        w.pushX += (pushTarget - w.pushX) * PUSH_EASE
+      // 归位后解除方向锁定
+      if (w.dispMag < 0.3 && targetM === 0) {
+        w.dispMag = 0
+        w.escUx = 0
+        w.escUy = 0
       }
-      w.el.style.transform = Math.abs(w.pushX) > 0.05 ? `translateX(${w.pushX.toFixed(2)}px)` : ''
+
+      // 旋转：按位移量倾斜，方向取逃离方向 + 每词随机扰动 → 自然、不强制正立
+      let targetRot = (Math.sin(w.seed) * 0.7 + (w.escUx >= 0 ? 0.5 : -0.5)) * w.dispMag * ROT_GAIN
+      if (targetRot > ROT_MAX) targetRot = ROT_MAX
+      else if (targetRot < -ROT_MAX) targetRot = -ROT_MAX
+      w.rot += (targetRot - w.rot) * ROT_EASE
+
+      const tx = w.dispMag * w.escUx
+      const ty = w.dispMag * w.escUy
+      if (w.dispMag > 0.1 || Math.abs(w.rot) > 0.1) {
+        w.el.style.transform = `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) rotate(${w.rot.toFixed(2)}deg)`
+      } else {
+        w.el.style.transform = ''
+      }
     }
   }
 
