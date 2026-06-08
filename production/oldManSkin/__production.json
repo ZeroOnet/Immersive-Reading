@@ -1,0 +1,29 @@
+{
+  "effectId": "oldManSkin",
+  "params": {
+    "title": "The Old Man and the Sea",
+    "subtitle": "老人与海",
+    "body": "Have you ever stood where the sea seems endless, and felt how solitude presses in even as courage rises up? Then, step onto this small boat and enter a timeless story of an old fisherman who sails far beyond the shore, meeting the vast ocean with nothing but his skill, his endurance, and his unyielding will.",
+    "titleColor": "#c5bba5",
+    "subtitleColor": "#afafaf",
+    "bodyColor": "#c5bba5",
+    "scrim": 0.28,
+    "bobAmp": 9,
+    "bobSpeed": 1,
+    "rockDeg": 2,
+    "rain": 0.5,
+    "splashRate": 0,
+    "dropsPerBurst": 16,
+    "splashSpread": 1.1,
+    "splashSpeed": 3,
+    "splashGrowth": 1,
+    "slide": 0.7,
+    "strikeInterval": 6,
+    "maxBolts": 3,
+    "boltJitter": 22,
+    "maxGap": 14,
+    "flicker": 0.3,
+    "dropColor": "#bfe6ff"
+  },
+  "savedAt": "2026-06-08T10:30:24.462Z"
+}

@@ -28,9 +28,7 @@ export interface OldManSkinParams {
   dropColor: string // 水珠色
 }
 
-const BODY = `Have you ever stood where the sea seems endless, and felt how solitude presses in even as courage rises up? Then, step onto this small boat and enter a timeless story of an old fisherman who sails far beyond the shore, meeting the vast ocean with nothing but his skill, his endurance, and his unyielding will.
-
-Written by Ernest Hemingway, this spare and powerful novella follows Santiago as he drifts into deep waters, where struggle, dignity, and the harsh beauty of the sea become one. Beneath the crash of waves and the threat of storm, it is a journey about loneliness, defiance, and what it means to remain unbroken.`
+const BODY = `Have you ever stood where the sea seems endless, and felt how solitude presses in even as courage rises up? Then, step onto this small boat and enter a timeless story of an old fisherman who sails far beyond the shore, meeting the vast ocean with nothing but his skill, his endurance, and his unyielding will.`
 
 export const defaultParams: OldManSkinParams = {
   title: 'The Old Man and the Sea',
