@@ -1,6 +1,6 @@
 import type { EffectHandle } from '../types'
 import type { OldManSkinParams } from './params'
-import bg from './bg.png'
+import bg from './bg.mp4'
 
 interface Bolt {
   pts: { x: number; y: number }[]
@@ -38,10 +38,30 @@ export function mountOldManSkin(
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#0a0f1c;'
   container.appendChild(root)
 
-  const im = document.createElement('img')
+  // 背景：海面缓慢涌浪视频（首帧=尾帧无缝循环），带声播放。
+  // 浏览器禁止带声 autoplay → 被拒时降级静音播 + 首次交互（点击/触摸/按键）解除静音
+  const im = document.createElement('video')
   im.src = bg
+  im.autoplay = true
+  im.loop = true
+  im.playsInline = true
+  im.setAttribute('playsinline', '')
+  im.setAttribute('webkit-playsinline', '')
   im.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;'
   root.appendChild(im)
+  im.muted = false
+  im.volume = 1
+  im.play().catch(() => {
+    im.muted = true
+    void im.play().catch(() => {})
+    const unmute = () => {
+      im.muted = false
+      void im.play().catch(() => {})
+    }
+    window.addEventListener('click', unmute, { once: true })
+    window.addEventListener('touchstart', unmute, { once: true, passive: true })
+    window.addEventListener('keydown', unmute, { once: true })
+  })
 
   const scrim = document.createElement('div')
   scrim.style.cssText = 'position:absolute;inset:0;pointer-events:none;'
@@ -202,7 +222,6 @@ export function mountOldManSkin(
   // 闪电：随机劈中任意一段文字 → 撕裂；电弧指向它，外加几条随机
   function strike() {
     flash = 1
-    playThunder()
     const targets: HTMLElement[] = [title, subtitle, ...(Array.from(bodyBox.children) as HTMLElement[])]
     const target = targets[(Math.random() * targets.length) | 0]
     let tx = Math.random() * W
@@ -383,73 +402,6 @@ export function mountOldManSkin(
       `rgba(8,12,20,${(s * 0.1).toFixed(2)}) 52%, rgba(8,12,20,${(s * 0.55).toFixed(2)}) 100%)`
   }
 
-  // ── 程序化音频（海浪 + 雷，需手势）──
-  let audio: AudioContext | null = null
-  let noiseBuf: AudioBuffer | null = null
-  function makeNoise(ac: AudioContext, sec: number) {
-    const len = ac.sampleRate * sec
-    const buf = ac.createBuffer(1, len, ac.sampleRate)
-    const d = buf.getChannelData(0)
-    let last = 0
-    for (let i = 0; i < len; i++) {
-      const w = Math.random() * 2 - 1
-      last = (last + 0.02 * w) / 1.02
-      d[i] = last * 3.5
-    }
-    return buf
-  }
-  function setupAudio() {
-    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    audio = new AC()
-    noiseBuf = makeNoise(audio, 2)
-    const src = audio.createBufferSource()
-    src.buffer = noiseBuf
-    src.loop = true
-    const lp = audio.createBiquadFilter()
-    lp.type = 'lowpass'
-    lp.frequency.value = 500
-    const g = audio.createGain()
-    g.gain.value = 0.15
-    src.connect(lp)
-    lp.connect(g)
-    g.connect(audio.destination)
-    src.start()
-  }
-  function playThunder() {
-    if (!audio || !noiseBuf) return
-    const now = audio.currentTime
-    const src = audio.createBufferSource()
-    src.buffer = noiseBuf
-    const lp = audio.createBiquadFilter()
-    lp.type = 'lowpass'
-    lp.frequency.setValueAtTime(1400, now)
-    lp.frequency.exponentialRampToValueAtTime(120, now + 1.4)
-    const g = audio.createGain()
-    g.gain.setValueAtTime(0.0001, now)
-    g.gain.exponentialRampToValueAtTime(0.6, now + 0.02)
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6)
-    src.connect(lp)
-    lp.connect(g)
-    g.connect(audio.destination)
-    src.start(now)
-    src.stop(now + 1.7)
-  }
-
-  const sndBtn = document.createElement('button')
-  sndBtn.textContent = '🔊 启用风暴音效'
-  sndBtn.style.cssText =
-    'position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:6;padding:8px 14px;border:0;border-radius:999px;background:rgba(207,230,240,.92);color:#10202a;font:600 13px ui-sans-serif;cursor:pointer'
-  root.appendChild(sndBtn)
-  sndBtn.onclick = () => {
-    try {
-      setupAudio()
-      void audio?.resume()
-    } catch {
-      /* 无音频则纯视觉 */
-    }
-    sndBtn.remove()
-  }
-
   applyText()
   applyScrim()
   const ro = new ResizeObserver(() => build())
@@ -478,8 +430,6 @@ export function mountOldManSkin(
     destroy() {
       cancelAnimationFrame(raf)
       ro.disconnect()
-      sndBtn.remove()
-      void audio?.close()
       root.remove()
     },
     setTimeScale(s) {

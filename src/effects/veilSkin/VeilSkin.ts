@@ -17,21 +17,32 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#4b4b4b;touch-action:none;'
   container.appendChild(root)
 
-  // 背景：油灯火焰闪烁视频（首帧=尾帧无缝循环）+ 大气覆盖层。
+  // 背景：油灯火焰闪烁视频（首帧=尾帧无缝循环）+ 大气覆盖层，带声播放。
   // 视频由原 bg.png 生成、构图一致 → 沿用同一 object-fit:cover + 右下 object-position（与 Figma "right=0 bottom=-6" 对齐）
-  // 静音自动循环播放：浏览器恒允许静音 autoplay，无需用户手势
+  // 浏览器禁止带声 autoplay → 被拒时降级静音播 + 首次交互（点击/触摸/按键）解除静音
   const bg = document.createElement('video')
   bg.src = bgVideo
   bg.autoplay = true
   bg.loop = true
-  bg.muted = true
   bg.playsInline = true
   bg.setAttribute('playsinline', '')
   bg.setAttribute('webkit-playsinline', '')
   bg.style.cssText =
     'position:absolute;inset:0;width:100%;height:calc(100% + 6px);object-fit:cover;object-position:100% 100%;pointer-events:none;z-index:0;'
   root.appendChild(bg)
-  void bg.play().catch(() => {})
+  bg.muted = false
+  bg.volume = 1
+  bg.play().catch(() => {
+    bg.muted = true
+    void bg.play().catch(() => {})
+    const unmute = () => {
+      bg.muted = false
+      void bg.play().catch(() => {})
+    }
+    window.addEventListener('click', unmute, { once: true })
+    window.addEventListener('touchstart', unmute, { once: true, passive: true })
+    window.addEventListener('keydown', unmute, { once: true })
+  })
   const bgOv = document.createElement('img')
   bgOv.src = bgOverlayImg
   bgOv.style.cssText = bg.style.cssText
