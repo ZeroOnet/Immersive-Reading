@@ -3,6 +3,7 @@ import type { SherlockSkinParams } from './params'
 import bgImg from './bg.png'
 import avatarLestradeImg from './avatarLestrade.png'
 import avatarHolmesImg from './avatarHolmes.png'
+import crimeSceneVideo from './crimeScene.mp4'
 
 // 按 body 中 ((...)) trigger 出现顺序对应；index 越界回落到最后一个
 const AVATARS = [avatarLestradeImg, avatarHolmesImg]
@@ -78,23 +79,61 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   bubble.appendChild(nameEl)
   col.appendChild(bubble)
 
-  // 底部 CTA
+  // 底部 CTA：点击「查看案发现场」→ 框内循环播放案发现场视频（镜头从轴侧回正到红字墙正视图）
   const cta = document.createElement('button')
   cta.style.cssText =
-    'position:absolute;left:36px;bottom:36px;width:303px;height:188px;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:20px;opacity:.78;' +
+    'position:absolute;left:36px;bottom:36px;width:303px;height:188px;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:20px;opacity:.78;overflow:hidden;' +
     'cursor:pointer;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:0;color:rgba(192,201,202,.55);' +
     "font-family:'MiSans VF','PingFang SC',system-ui,sans-serif;font-size:22px;letter-spacing:.5px;transition:background-color .25s ease, opacity .25s ease, transform .15s ease;"
   col.appendChild(cta)
+  // 文案标签（applyText 写这里，避免 cta.textContent 清掉视频子节点）
+  const ctaLabel = document.createElement('span')
+  ctaLabel.style.cssText = 'position:relative;z-index:1;transition:opacity .3s ease;'
+  cta.appendChild(ctaLabel)
+  // 嵌入的案发现场视频，铺满框、初始隐藏；pointer-events:none → 点击穿透回 cta
+  const crimeVid = document.createElement('video')
+  crimeVid.src = crimeSceneVideo
+  crimeVid.loop = true
+  crimeVid.playsInline = true
+  crimeVid.setAttribute('playsinline', '')
+  crimeVid.setAttribute('webkit-playsinline', '')
+  crimeVid.style.cssText =
+    'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:20px;opacity:0;transition:opacity .35s ease;pointer-events:none;'
+  cta.appendChild(crimeVid)
+  let sceneShown = false
   cta.addEventListener('pointerdown', () => {
+    if (sceneShown) return
     cta.style.transform = 'scale(.98)'
     cta.style.background = 'rgba(102,203,225,.08)'
   })
   const releaseCTA = () => {
     cta.style.transform = ''
-    cta.style.background = ''
+    if (!sceneShown) cta.style.background = 'transparent'
   }
   cta.addEventListener('pointerup', releaseCTA)
   cta.addEventListener('pointerleave', releaseCTA)
+  // 切换：首次点击亮起播放（带声，点击即用户手势可解锁音频，被拒则静音兜底）；再点收起回文案
+  cta.addEventListener('click', () => {
+    sceneShown = !sceneShown
+    if (sceneShown) {
+      cta.style.opacity = '1'
+      cta.style.background = '#000'
+      ctaLabel.style.opacity = '0'
+      crimeVid.style.opacity = '1'
+      crimeVid.currentTime = 0
+      crimeVid.muted = false
+      void crimeVid.play().catch(() => {
+        crimeVid.muted = true
+        void crimeVid.play().catch(() => {})
+      })
+    } else {
+      cta.style.opacity = '.78'
+      cta.style.background = 'transparent'
+      ctaLabel.style.opacity = '1'
+      crimeVid.style.opacity = '0'
+      crimeVid.pause()
+    }
+  })
 
   // ── 展开/收起状态 ──
   let expanded = false
@@ -266,7 +305,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
       updateBubble(activeTriggerIdx)
       triggerSpans.forEach((s, i) => s.classList.toggle('sh-dim', i !== activeTriggerIdx))
     }
-    cta.textContent = params.ctaLabel
+    ctaLabel.textContent = params.ctaLabel
     // 文本重渲染会清掉之前的 trigger 监听，这里如果是展开态需要重跑动画
     if (expanded && activeTriggerIdx >= 0) runUnderlineAnimation(activeTriggerIdx)
   }
