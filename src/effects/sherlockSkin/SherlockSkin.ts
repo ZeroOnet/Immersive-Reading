@@ -4,6 +4,8 @@ import bgImg from './bg.png'
 import avatarLestradeImg from './avatarLestrade.png'
 import avatarHolmesImg from './avatarHolmes.png'
 import crimeSceneVideo from './crimeScene.mp4'
+import lettersRevealVideo from './lettersReveal.mp4'
+import revengeRevealVideo from './revengeReveal.mp4'
 
 // 按 body 中 ((...)) trigger 出现顺序对应；index 越界回落到最后一个
 const AVATARS = [avatarLestradeImg, avatarHolmesImg]
@@ -79,7 +81,9 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   bubble.appendChild(nameEl)
   col.appendChild(bubble)
 
-  // 底部 CTA：点击「查看案发现场」→ 框内循环播放案发现场视频（镜头从轴侧回正到红字墙正视图）
+  // 底部 CTA「查看案发现场」框：可在框内播两段视频——
+  //   · 点框本身 → 案发现场视频(crimeScene，镜头轴侧回正到红字墙)
+  //   · 点第一处高亮文本 → 红字抽离视频(lettersReveal)；三态 label/crime/letters
   const cta = document.createElement('button')
   cta.style.cssText =
     'position:absolute;left:36px;bottom:36px;width:303px;height:188px;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:20px;opacity:.78;overflow:hidden;' +
@@ -90,49 +94,66 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   const ctaLabel = document.createElement('span')
   ctaLabel.style.cssText = 'position:relative;z-index:1;transition:opacity .3s ease;'
   cta.appendChild(ctaLabel)
-  // 嵌入的案发现场视频，铺满框、初始隐藏；pointer-events:none → 点击穿透回 cta
-  const crimeVid = document.createElement('video')
-  crimeVid.src = crimeSceneVideo
-  crimeVid.loop = true
-  crimeVid.playsInline = true
-  crimeVid.setAttribute('playsinline', '')
-  crimeVid.setAttribute('webkit-playsinline', '')
-  crimeVid.style.cssText =
-    'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:20px;opacity:0;transition:opacity .35s ease;pointer-events:none;'
-  cta.appendChild(crimeVid)
-  let sceneShown = false
+  // 框内两段视频：铺满、初始隐藏；pointer-events:none → 点击穿透回 cta 统一处理
+  function mkSceneVid(src: string): HTMLVideoElement {
+    const v = document.createElement('video')
+    v.src = src
+    v.loop = true
+    v.playsInline = true
+    v.setAttribute('playsinline', '')
+    v.setAttribute('webkit-playsinline', '')
+    v.style.cssText =
+      'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:20px;opacity:0;transition:opacity .35s ease;pointer-events:none;'
+    cta.appendChild(v)
+    return v
+  }
+  // 三段框内视频；点框→crime，点第一/第二处高亮文本→letters/revenge（按 TRIGGER_VIDEO 映射）
+  const sceneVids: Record<'crime' | 'letters' | 'revenge', HTMLVideoElement> = {
+    crime: mkSceneVid(crimeSceneVideo),
+    letters: mkSceneVid(lettersRevealVideo),
+    revenge: mkSceneVid(revengeRevealVideo),
+  }
+  const TRIGGER_VIDEO: Record<number, 'letters' | 'revenge'> = { 0: 'letters', 1: 'revenge' }
+  let ctaMode: 'label' | 'crime' | 'letters' | 'revenge' = 'label'
+  function playSceneVid(v: HTMLVideoElement) {
+    v.style.opacity = '1'
+    v.currentTime = 0
+    v.muted = false // 点击即用户手势，可带声；被拒静音兜底
+    void v.play().catch(() => {
+      v.muted = true
+      void v.play().catch(() => {})
+    })
+  }
+  // 设置框内容：label=文案/透明；其余=播对应视频、其它视频收起暂停、框黑底
+  function setCtaContent(mode: 'label' | 'crime' | 'letters' | 'revenge') {
+    ctaMode = mode
+    const showVid = mode !== 'label'
+    cta.style.opacity = showVid ? '1' : '.78'
+    cta.style.background = showVid ? '#000' : 'transparent'
+    ctaLabel.style.opacity = showVid ? '0' : '1'
+    ;(['crime', 'letters', 'revenge'] as const).forEach((k) => {
+      const v = sceneVids[k]
+      if (k === mode) playSceneVid(v)
+      else {
+        v.style.opacity = '0'
+        v.pause()
+      }
+    })
+  }
   cta.addEventListener('pointerdown', () => {
-    if (sceneShown) return
+    if (ctaMode !== 'label') return
     cta.style.transform = 'scale(.98)'
     cta.style.background = 'rgba(102,203,225,.08)'
   })
   const releaseCTA = () => {
     cta.style.transform = ''
-    if (!sceneShown) cta.style.background = 'transparent'
+    if (ctaMode === 'label') cta.style.background = 'transparent'
   }
   cta.addEventListener('pointerup', releaseCTA)
   cta.addEventListener('pointerleave', releaseCTA)
-  // 切换：首次点击亮起播放（带声，点击即用户手势可解锁音频，被拒则静音兜底）；再点收起回文案
+  // 点框：label↔crime 切换；正在放任何视频时点框 → 收起回文案
   cta.addEventListener('click', () => {
-    sceneShown = !sceneShown
-    if (sceneShown) {
-      cta.style.opacity = '1'
-      cta.style.background = '#000'
-      ctaLabel.style.opacity = '0'
-      crimeVid.style.opacity = '1'
-      crimeVid.currentTime = 0
-      crimeVid.muted = false
-      void crimeVid.play().catch(() => {
-        crimeVid.muted = true
-        void crimeVid.play().catch(() => {})
-      })
-    } else {
-      cta.style.opacity = '.78'
-      cta.style.background = 'transparent'
-      ctaLabel.style.opacity = '1'
-      crimeVid.style.opacity = '0'
-      crimeVid.pause()
-    }
+    setCtaContent(ctaMode === 'label' ? 'crime' : 'label')
   })
 
   // ── 展开/收起状态 ──
@@ -140,6 +161,9 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   let activeTriggerIdx = -1 // 当前被点击展开的 trigger 索引（用于决定哪个角色 + 限定下划线范围）
   let underlineTimers: number[] = []
   let triggerSpans: HTMLElement[] = []
+  // 键盘上下键逐段滚动用：段首匹配下列前缀的段落作为锚点
+  let anchorParas: HTMLElement[] = []
+  const SCROLL_ANCHORS = ['Look at that', 'And what does it', 'If this man was']
 
   function clearUnderlineAnimation() {
     underlineTimers.forEach((t) => window.clearTimeout(t))
@@ -179,6 +203,8 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
       bodyBox.classList.add('sh-dim-active')
       // 抬高 body 底边 → 与 bubble 留 16px 空隙、文字向上缩入新窗口
       bodyBox.classList.add('sh-shifted')
+      // 下划线/展开态禁用用户滚动（overflow:hidden 仍允许 scrollIntoView 程序化居中 trigger）
+      bodyBox.style.overflowY = 'hidden'
       // 当前 trigger 不 dim、其他 trigger 与普通文字一起 dim
       triggerSpans.forEach((s, i) => s.classList.toggle('sh-dim', i !== triggerIdx))
       bubble.style.opacity = '1'
@@ -188,16 +214,44 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
     } else {
       bodyBox.classList.remove('sh-dim-active')
       bodyBox.classList.remove('sh-shifted')
+      // 取消下划线 → 恢复滚动。注意 overflow-y:auto 原写在内联 cssText 里，
+      // 设 '' 会回落到默认 visible（溢出+不可滚），必须显式设回 'auto'
+      bodyBox.style.overflowY = 'auto'
       triggerSpans.forEach((s) => s.classList.remove('sh-dim'))
       bubble.style.opacity = '0'
       bubble.style.transform = 'translateY(-6px)'
       clearUnderlineAnimation()
     }
+    // 文字选中态变化：框内若正放某高亮文本的视频，但它不对应当前选中的 trigger → 回归「查看案发现场」
+    const expectVid = TRIGGER_VIDEO[on ? triggerIdx : -1]
+    if ((ctaMode === 'letters' || ctaMode === 'revenge') && ctaMode !== expectVid) setCtaContent('label')
   }
   // 点击展开后其他区域：收起。trigger 自己 stopPropagation 不会触发 collapse。
   root.addEventListener('click', () => {
     if (expanded) setExpanded(false)
   })
+
+  // 键盘上下键：以锚点段为单位逐段滚动（按当前 scrollTop 找相邻锚点，鲁棒于手动滚动）
+  function onKey(e: KeyboardEvent) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    if (expanded) return // 下划线/展开态禁用键盘滚动
+    const tgt = e.target as HTMLElement | null
+    if (tgt && /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName)) return // 不抢输入框/滑杆
+    if (!anchorParas.length) return
+    const cur = bodyBox.scrollTop
+    let target: HTMLElement | undefined
+    if (e.key === 'ArrowDown') {
+      target = anchorParas.find((p) => p.offsetTop > cur + 4) // 下一个在当前位置之下的锚点
+    } else {
+      const above = anchorParas.filter((p) => p.offsetTop < cur - 4)
+      target = above[above.length - 1] // 上一个在当前位置之上的锚点
+    }
+    if (target) {
+      e.preventDefault()
+      bodyBox.scrollTo({ top: target.offsetTop, behavior: 'smooth' })
+    }
+  }
+  window.addEventListener('keydown', onKey)
 
   // ── 渲染 ──
   // 解析 **xxx** → keyword 高亮 span；其他文本以纯文本节点追加（不再吐 __ 字符）
@@ -231,6 +285,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   function renderBody() {
     bodyBox.innerHTML = ''
     triggerSpans = []
+    anchorParas = []
     // 字面量 \n\n 分段：连续多个 \n\n 不会被合并为单个分隔符 → 可生成多个连续空段
     const paras = params.body.split('\n\n')
     paras.forEach((para, i) => {
@@ -242,6 +297,8 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
         bodyBox.appendChild(p)
         return
       }
+      // 段首（剥掉前导引号/空白后）匹配锚点前缀 → 收集该段，供键盘上下键逐段定位
+      if (SCROLL_ANCHORS.some((a) => para.replace(/^["'“”\s]+/, '').startsWith(a))) anchorParas.push(p)
       const parts = para.split(/(\(\([\s\S]+?\)\))/g)
       let hasTrigger = false
       parts.forEach((seg) => {
@@ -274,8 +331,12 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
           triggerSpans.push(trig)
           trig.addEventListener('click', (e) => {
             e.stopPropagation()
+            const willCollapse = expanded && activeTriggerIdx === myIdx
+            // 高亮文本 → 框内循环播放对应视频（仅展开时放；收起/切换由 setExpanded 还原为「查看案发现场」）
+            const vid = TRIGGER_VIDEO[myIdx]
+            if (vid && !willCollapse) setCtaContent(vid)
             // 点同一个 trigger 折叠；点不同 trigger 切换角色
-            if (expanded && activeTriggerIdx === myIdx) setExpanded(false)
+            if (willCollapse) setExpanded(false)
             else setExpanded(true, myIdx)
           })
           p.appendChild(trig)
@@ -352,6 +413,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
     },
     destroy() {
       clearUnderlineAnimation()
+      window.removeEventListener('keydown', onKey)
       root.remove()
     },
   }
@@ -380,6 +442,10 @@ function ensureStyles() {
     '.sh-ul-word{background-image:linear-gradient(to right,var(--ul-color,#e63b3b),var(--ul-color,#e63b3b));' +
     'background-repeat:no-repeat;background-position:0 100%;background-size:0% 2px;transition:background-size .22s ease-out}' +
     '.sh-ul-word.active{background-size:100% 2px}' +
-    '.sh-trigger{cursor:pointer}'
+    // 可点击文本（trigger）呼吸灯：青色辉光弱→强→弱循环，提示可点击；被 dim（其它 trigger 失焦）时停掉
+    '.sh-trigger{cursor:pointer;animation:sh-breathe 2.4s ease-in-out infinite}' +
+    '.sh-trigger.sh-dim{animation:none}' +
+    '@keyframes sh-breathe{0%,100%{text-shadow:0 0 1px rgba(102,203,225,.12)}' +
+    '50%{text-shadow:0 0 9px rgba(102,203,225,.6),0 0 3px rgba(102,203,225,.45)}}'
   document.head.appendChild(st)
 }
