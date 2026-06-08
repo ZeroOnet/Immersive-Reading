@@ -1,6 +1,6 @@
 import type { EffectHandle } from '../types'
 import type { VeilSkinParams } from './params'
-import bgImg from './bg.png'
+import bgVideo from './bg.mp4'
 import bgOverlayImg from './bgOverlay.png'
 import dotSvg from './dot.svg'
 
@@ -17,13 +17,21 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#4b4b4b;touch-action:none;'
   container.appendChild(root)
 
-  // 背景：山城 + 大气覆盖层。设计稿 bg 在右下方 386×834，靠 object-fit:cover 铺满，
-  // object-position 偏右下，与 Figma "right=0 bottom=-6" 视觉对齐
-  const bg = document.createElement('img')
-  bg.src = bgImg
+  // 背景：油灯火焰闪烁视频（首帧=尾帧无缝循环）+ 大气覆盖层。
+  // 视频由原 bg.png 生成、构图一致 → 沿用同一 object-fit:cover + 右下 object-position（与 Figma "right=0 bottom=-6" 对齐）
+  // 静音自动循环播放：浏览器恒允许静音 autoplay，无需用户手势
+  const bg = document.createElement('video')
+  bg.src = bgVideo
+  bg.autoplay = true
+  bg.loop = true
+  bg.muted = true
+  bg.playsInline = true
+  bg.setAttribute('playsinline', '')
+  bg.setAttribute('webkit-playsinline', '')
   bg.style.cssText =
     'position:absolute;inset:0;width:100%;height:calc(100% + 6px);object-fit:cover;object-position:100% 100%;pointer-events:none;z-index:0;'
   root.appendChild(bg)
+  void bg.play().catch(() => {})
   const bgOv = document.createElement('img')
   bgOv.src = bgOverlayImg
   bgOv.style.cssText = bg.style.cssText
