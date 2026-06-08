@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Magic Text Reading · Lab</title>
+  </head>
+  <body class="lab">
+    <!-- 调试台。仅开发使用，production build 不打包此入口。 -->
+    <aside id="sidebar">
+      <header>
+        <h1>🧪 Effect Lab</h1>
+        <p class="hint">调试页 ≠ 成品页：这里拨参数，导出后冻结进 Gallery。</p>
+      </header>
+
+      <div class="field">
+        <label for="effect-select">Effect</label>
+        <select id="effect-select"></select>
+      </div>
+
+      <div class="controls">
+        <button id="btn-pause">⏸ Pause</button>
+        <button id="btn-step">⏭ Step</button>
+        <button id="btn-reset">↺ Reset</button>
+        <label class="slow">Slow-mo <span id="slow-val">1.0x</span>
+          <input id="slow" type="range" min="0.1" max="2" step="0.1" value="1" />
+        </label>
+        <label class="chk"><input id="debug" type="checkbox" /> 调试辅助层</label>
+        <div class="field">
+          <label for="viewport">视口模拟</label>
+          <select id="viewport">
+            <option value="full">Full</option>
+            <option value="390x844">Phone 390×844</option>
+            <option value="834x1112">Pad 834×1112</option>
+          </select>
+        </div>
+        <button id="btn-copy">⧉ Copy params JSON</button>
+        <button id="btn-shot">📸 Snapshot PNG</button>
+      </div>
+
+      <div class="export">
+        <div class="field">
+          <label for="preset-name">导出名称（用于区分）</label>
+          <input id="preset-name" type="text" placeholder="如 alice-dream-v2" />
+        </div>
+        <button id="btn-export" class="primary">💾 Export to Gallery</button>
+      </div>
+
+      <div id="gui"></div>
+      <div class="meta">
+        <div id="stats"></div>
+      </div>
+    </aside>
+
+    <main id="stage-frame">
+      <div id="stage"></div>
+    </main>
+
+    <div id="toast"></div>
+    <script type="module" src="/src/lab/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+}
+body {
+  background: #0a0712;
+  color: #ece7f5;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.scene {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #1b1330;
+}
+.scene .copy {
+  padding: max(env(safe-area-inset-top), 32px) 24px 0;
+}
+.scene .copy h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-family: 'Iowan Old Style', Georgia, serif;
+  font-weight: 600;
+}
+.scene .copy p {
+  margin: 0;
+  color: #9a92b0;
+  font-size: clamp(0.95rem, 3.6vw, 1.05rem);
+}
+.scene .copy p.meta {
+  margin-top: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #6f6890;
+}
+.scene .stage {
+  flex: 1;
+  min-height: 60vh;
+}

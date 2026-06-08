@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Magic Text Reading · 技术储备 spikes</title>
+<style>
+  body{margin:0;min-height:100vh;background:radial-gradient(120% 90% at 50% 0%,#171029,#0a0712);
+       color:#ece7f5;font-family:ui-sans-serif,system-ui;display:grid;place-items:center;padding:24px}
+  .wrap{width:min(560px,100%)}
+  h1{font-size:20px;letter-spacing:.04em}
+  p.sub{color:#8c84a3;font-size:13px;line-height:1.6}
+  a.card{display:block;text-decoration:none;color:#ece7f5;background:#170f2b;border:1px solid #2c2347;
+         border-radius:14px;padding:16px 18px;margin:12px 0;transition:border-color .2s}
+  a.card:hover{border-color:#7b5cff}
+  .k{font:600 11px/1 ui-sans-serif;letter-spacing:.25em;text-transform:uppercase;color:#b9a6ff}
+  .t{font-size:17px;margin:6px 0 4px}
+  .d{font-size:13px;color:#9a92b0;line-height:1.5}
+  .warn{font-size:12px;color:#e0b483;background:#241a10;border-radius:10px;padding:10px 12px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Magic Text Reading · 高风险原语验证</h1>
+  <p class="sub">每个 spike 是"证明这条路走得通"的最小实现，不是成品。</p>
+  <a class="card" href="./spell-voice.html"><div class="k">P4 · 语音 · 高风险</div><div class="t">Spell Voice Unlock</div><div class="d">浏览器语音识别 → 咒语逐词点亮 + TTS 试听 + demo 兜底</div></a>
+  <a class="card" href="./knock-mic.html"><div class="k">P5 · 声音 · 中风险</div><div class="t">Knock to Open</div><div class="d">麦克风 RMS 峰值检测「敲三下」，不做声音分类（最稳）</div></a>
+  <a class="card" href="./text-particles.html"><div class="k">P2 · 形变 · 中风险</div><div class="t">Text → Particles</div><div class="d">一套粒子引擎跑 聚形 / 风吹 / 坍塌成山 / 引力拖拽</div></a>
+  <div class="warn">⚠️ 麦克风和语音识别需要<b>安全上下文</b>：在电脑上用 <code>localhost</code> 可用；手机走局域网 <code>http://10.x</code> 会被浏览器拦麦克风，需 https（或先在电脑 Chrome 上验证）。Text→Particles 任意环境可开。</div>
+</div>
+</body>
+</html>

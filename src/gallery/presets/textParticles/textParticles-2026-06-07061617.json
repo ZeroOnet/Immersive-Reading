@@ -1,0 +1,21 @@
+{
+  "effectId": "textParticles",
+  "name": "textParticles-2026-06-07061617",
+  "params": {
+    "text": "MAGIC",
+    "mode": "interactive",
+    "density": 5,
+    "particleSize": 2.4,
+    "color": "#b9a6ff",
+    "windAmplitude": 14,
+    "gravityStrength": 1,
+    "ease": 0.12,
+    "pointerRadius": 90,
+    "pointerForce": 4,
+    "spring": 0.05,
+    "damping": 0.86,
+    "glow": 0.9,
+    "idle": 2
+  },
+  "savedAt": "2026-06-07T06:16:17.772Z"
+}

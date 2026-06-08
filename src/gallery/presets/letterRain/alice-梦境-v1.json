@@ -1,0 +1,16 @@
+{
+  "effectId": "letterRain",
+  "name": "alice-梦境-v1",
+  "params": {
+    "text": "down down down",
+    "gravity": 0.2,
+    "gravityAngle": 90,
+    "bounce": 0.25,
+    "airFriction": 0.985,
+    "sizeMin": 16,
+    "sizeMax": 34,
+    "color": "#cbb8ff",
+    "repulsion": 0.6
+  },
+  "savedAt": "2026-06-05T03:13:29.838Z"
+}

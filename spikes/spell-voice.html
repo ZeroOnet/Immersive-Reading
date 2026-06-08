@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Spike P4 · Spell Voice Unlock</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; gap: 0;
+    background: radial-gradient(120% 90% at 50% 10%, #1a1230, #0a0712);
+    color: #ece7f5; font-family: 'Iowan Old Style', Georgia, serif; padding: 24px;
+  }
+  .card { width: min(680px, 100%); }
+  h1 { font: 600 14px/1.4 ui-sans-serif, system-ui; letter-spacing: .3em; text-transform: uppercase; color: #b9a6ff; opacity:.8 }
+  .spell { font-size: clamp(1.5rem, 6vw, 2.4rem); line-height: 1.5; margin: 18px 0 8px; }
+  .w { color: #5b5470; transition: color .25s, text-shadow .25s, transform .25s; display: inline-block; }
+  .w.lit { color: #fff; text-shadow: 0 0 18px #b9a6ff, 0 0 40px #7b5cff; transform: translateY(-2px); }
+  .done .spell { animation: burst .9s ease forwards; }
+  @keyframes burst { 30%{ letter-spacing:.05em } 100%{ filter: drop-shadow(0 0 24px #9b7bff); letter-spacing:0 } }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px }
+  button {
+    font: 600 14px/1 ui-sans-serif, system-ui; color:#0a0712; background:#b9a6ff; border:0;
+    padding: 12px 16px; border-radius: 999px; cursor:pointer; -webkit-tap-highlight-color: transparent;
+  }
+  button.ghost { background: transparent; color:#b9a6ff; box-shadow: inset 0 0 0 1px #4a3f6e; }
+  button:active { transform: scale(.96); }
+  .status { font: 400 13px/1.5 ui-sans-serif, system-ui; color:#8c84a3; margin-top:14px; min-height: 2.4em; }
+  .heard { color:#cabff0; }
+  .gate { margin-top:18px; font:600 18px/1 ui-sans-serif; color:#7bffce; opacity:0; transition:opacity .5s }
+  .gate.show { opacity:1 }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Spike · Spell Voice Unlock</h1>
+  <div id="spell" class="spell"></div>
+  <div class="row">
+    <button id="listen" class="ghost">🔊 Listen (TTS)</button>
+    <button id="speak">🎙 Speak the spell</button>
+    <button id="demo" class="ghost">✨ Cast anyway (demo mode)</button>
+    <button id="reset" class="ghost">Reset</button>
+  </div>
+  <div id="status" class="status"></div>
+  <div id="gate" class="gate">🚪 The gate opens. Chapter unlocked.</div>
+</div>
+<script>
+const SENTENCE = "The hidden gate opens only to the voice that remembers";
+const norm = (s) => s.toLowerCase().replace(/[^a-z']/g, "");
+const words = SENTENCE.split(" ");
+const spellEl = document.getElementById("spell");
+const statusEl = document.getElementById("status");
+const gateEl = document.getElementById("gate");
+let lit = 0;
+
+function render() {
+  spellEl.className = "spell";
+  spellEl.innerHTML = words.map((w, i) => `<span class="w" data-i="${i}">${w}</span>`).join(" ");
+  gateEl.classList.remove("show");
+  lit = 0;
+}
+function lightUpTo(targetIdx) {
+  // light all words from current up to targetIdx (in order)
+  for (let i = lit; i <= targetIdx && i < words.length; i++) {
+    const el = spellEl.querySelector(`[data-i="${i}"]`);
+    if (el) el.classList.add("lit");
+  }
+  lit = Math.max(lit, targetIdx + 1);
+  if (lit >= words.length) complete();
+}
+function complete() {
+  spellEl.classList.add("done");
+  gateEl.classList.add("show");
+  statusEl.innerHTML = '<span class="heard">✅ Spell complete.</span>';
+}
+
+// match a stream of recognized tokens against the sentence, in order, fuzzily
+function consumeTranscript(transcript) {
+  const toks = transcript.split(/\s+/).map(norm).filter(Boolean);
+  let cursor = lit; // next expected word index
+  for (const t of toks) {
+    if (cursor >= words.length) break;
+    const expected = norm(words[cursor]);
+    // accept exact, prefix, or close-enough (handles ASR splitting/merging)
+    if (t === expected || t.startsWith(expected) || expected.startsWith(t)) {
+      lightUpTo(cursor);
+      cursor++;
+    }
+  }
+}
+
+// ---- TTS preview ----
+document.getElementById("listen").onclick = () => {
+  if (!("speechSynthesis" in window)) { statusEl.textContent = "No speechSynthesis in this browser."; return; }
+  const u = new SpeechSynthesisUtterance(SENTENCE);
+  u.rate = 0.9; u.lang = "en-US";
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+};
+
+// ---- real speech recognition ----
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speakBtn = document.getElementById("speak");
+let recog = null, listening = false;
+if (!SR) {
+  speakBtn.disabled = true;
+  statusEl.innerHTML = "⚠️ SpeechRecognition not supported here (use Chrome/Edge). Use demo mode →";
+}
+speakBtn.onclick = () => {
+  if (!SR) return;
+  if (listening) { recog && recog.stop(); return; }
+  recog = new SR();
+  recog.lang = "en-US";
+  recog.interimResults = true;
+  recog.continuous = true;
+  recog.onstart = () => { listening = true; speakBtn.textContent = "⏹ Stop"; statusEl.textContent = "🎙 Listening… read the glowing words aloud."; };
+  recog.onresult = (e) => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) interim += e.results[i][0].transcript + " ";
+    consumeTranscript(interim);
+    statusEl.innerHTML = `heard: <span class="heard">${interim.trim()}</span>`;
+  };
+  recog.onerror = (e) => { statusEl.textContent = "ASR error: " + e.error + " — try demo mode."; };
+  recog.onend = () => { listening = false; speakBtn.textContent = "🎙 Speak the spell"; };
+  recog.start();
+};
+
+// ---- demo-mode fallback (NEVER fails on stage) ----
+document.getElementById("demo").onclick = () => {
+  let i = lit;
+  const timer = setInterval(() => {
+    if (i >= words.length) { clearInterval(timer); return; }
+    lightUpTo(i); i++;
+  }, 320);
+};
+document.getElementById("reset").onclick = render;
+render();
+</script>
+</body>
+</html>
