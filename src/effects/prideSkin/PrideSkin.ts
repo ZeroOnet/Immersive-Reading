@@ -1,6 +1,6 @@
 import type { EffectHandle } from '../types'
 import type { PrideSkinParams } from './params'
-import bgImg from './bg.png'
+import bgVideo from './bg.mp4'
 import bgOverlayImg from './bgOverlay.png'
 import stickerShadowSvg from './stickerShadow.svg'
 import stickerPaperImg from './stickerPaper.png'
@@ -24,11 +24,19 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
     'position:relative;width:100%;height:100%;overflow:hidden;background:#4b4b4b;touch-action:none;'
   container.appendChild(root)
 
-  // 背景：日落山景 + 大气覆盖层（设计 58:3525）
-  const bg = document.createElement('img')
-  bg.src = bgImg
+  // 背景：天空薄云缓慢漂移视频（首帧=尾帧无缝循环）+ 大气覆盖层（设计 58:3525）
+  // 静音自动循环播放：浏览器恒允许静音 autoplay，无需用户手势
+  const bg = document.createElement('video')
+  bg.src = bgVideo
+  bg.autoplay = true
+  bg.loop = true
+  bg.muted = true
+  bg.playsInline = true
+  bg.setAttribute('playsinline', '')
+  bg.setAttribute('webkit-playsinline', '')
   bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:0;'
   root.appendChild(bg)
+  void bg.play().catch(() => {})
   const bgOv = document.createElement('img')
   bgOv.src = bgOverlayImg
   bgOv.style.cssText =
