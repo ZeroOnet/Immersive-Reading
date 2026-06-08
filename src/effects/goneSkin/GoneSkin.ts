@@ -11,6 +11,7 @@ interface Spark {
   vy: number
   life: number
   max: number
+  size: number
 }
 
 // 《飘》阅读页皮肤（Figma 9:689）：设计稿火/战争背景 + 艺术字标题；
@@ -43,6 +44,18 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
   const ctx = canvas.getContext('2d')!
   const burnCv = document.createElement('canvas')
   const burnCtx = burnCv.getContext('2d')!
+  // 预渲染发光火星 sprite（白黄核→橙→透明），render 时 drawImage 复用（同 burning-page demo）
+  const sparkSprite = document.createElement('canvas')
+  sparkSprite.width = sparkSprite.height = 32
+  {
+    const sc = sparkSprite.getContext('2d')!
+    const rg = sc.createRadialGradient(16, 16, 0, 16, 16, 16)
+    rg.addColorStop(0, 'rgba(255,255,235,1)')
+    rg.addColorStop(0.3, 'rgba(255,180,70,0.9)')
+    rg.addColorStop(1, 'rgba(255,80,20,0)')
+    sc.fillStyle = rg
+    sc.fillRect(0, 0, 32, 32)
+  }
 
   const col = document.createElement('div')
   col.style.cssText = 'position:absolute;inset:0;max-width:390px;margin:0 auto;pointer-events:none;z-index:1;'
@@ -169,6 +182,7 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
     if (!out) return
     const o = out.data
     rimPts = []
+    let frontSeen = 0 // 已扫到的前沿像素数（蓄水池采样用，避免 rimPts 偏向上半部分）
     const burn = curBurn()
     // burn≈0：完全完好，全透明
     if (burn <= 0.001) {
@@ -176,54 +190,51 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
       burnCtx.putImageData(out, 0, 0)
       return
     }
-    const ember = params.ember
-    const scorch = 0.06
-    const [cr, cg, cb] = hexToRgb(params.charColor)
-    const [er, eg, eb] = hexToRgb(params.emberColor)
-    const [ar, ag, ab] = hexToRgb(params.ashColor)
+    // demo 同款三段：辉光前沿(glow→char) → 炭边淡出 → 完好透明；烧穿区炭黑遮住下方文字
+    const HOT = Math.max(0.012, params.ember) // 亮辉前沿带宽（D 空间）
+    const BAND = HOT + 0.075 // 其后炭边淡出带（≈ demo BAND-HOT=0.075）
+    const [gr, gg, gb] = hexToRgb(params.emberColor) // 辉光（亮琥珀）
+    const [cr, cg, cb] = hexToRgb(params.charColor) // 炭黑
     for (let i = 0, p = 0; i < D.length; i++, p += 4) {
       const d = D[i] - burn
-      if (d >= ember + scorch) {
-        o[p + 3] = 0 // 完好中心：透明
-      } else if (d < -ember) {
-        // 烧过 → 黑色灰烬（颗粒感）
+      if (d >= BAND) {
+        o[p + 3] = 0 // 完好：透明，露出 DOM 内容
+      } else if (d < 0) {
+        // 烧穿 → 炭黑（带颗粒），不透明以盖住下方文字（goneSkin 文字是 DOM 层）
         const py = (i / BW) | 0
         const px = i - py * BW
-        const lum = 0.55 + 0.6 * rand2(px, py, seed + 9)
-        o[p] = Math.min(255, ar * lum)
-        o[p + 1] = Math.min(255, ag * lum)
-        o[p + 2] = Math.min(255, ab * lum)
+        const lum = 0.75 + 0.45 * rand2(px, py, seed + 9)
+        o[p] = Math.min(255, cr * lum)
+        o[p + 1] = Math.min(255, cg * lum)
+        o[p + 2] = Math.min(255, cb * lum)
         o[p + 3] = 255
-      } else if (d < ember) {
-        // 余烬鳞带 ember→char
-        const h = 1 - (d + ember) / (2 * ember)
-        let r, g, b
-        if (h > 0.6) {
-          const k = (h - 0.6) / 0.4
-          r = er + (255 - er) * k
-          g = eg + (235 - eg) * k
-          b = eb + (180 - eb) * k
-        } else {
-          const k = h / 0.6
-          r = cr + (er - cr) * k
-          g = cg + (eg - cg) * k
-          b = cb + (eb - cb) * k
-        }
-        o[p] = r
-        o[p + 1] = g
-        o[p + 2] = b
+      } else if (d < HOT) {
+        // 灼烧前沿：辉光→炭黑（t=0 最亮），叠随机闪烁
+        const t = d / HOT
+        o[p] = gr + (cr - gr) * t + (Math.random() * 40 - 12)
+        o[p + 1] = gg + (cg - gg) * t + (Math.random() * 30 - 12)
+        o[p + 2] = gb + (cb - gb) * t
         o[p + 3] = 255
-        if ((i & 31) === 0 && rimPts.length < 4000) {
+        // 蓄水池采样：在整圈前沿里均匀保留最多 4000 个点（不因从上往下扫而偏上半段）
+        if (Math.random() < 0.05) {
+          frontSeen++
           const ry = (i / BW) | 0
-          rimPts.push(i - ry * BW, ry)
+          const rx = i - ry * BW
+          if (rimPts.length < 8000) {
+            rimPts.push(rx, ry)
+          } else if (Math.random() < 4000 / frontSeen) {
+            const ri = ((Math.random() * 4000) | 0) * 2
+            rimPts[ri] = rx
+            rimPts[ri + 1] = ry
+          }
         }
       } else {
-        // 焦黄过渡（内侧，半透明压暗）
-        const s = 1 - (d - ember) / scorch
+        // 炭边淡出：炭黑 → 透明（前方完好页的焦化边）
+        const t = (d - HOT) / (BAND - HOT)
         o[p] = cr
         o[p + 1] = cg
         o[p + 2] = cb
-        o[p + 3] = (s * 150) | 0
+        o[p + 3] = (255 * (1 - t)) | 0
       }
       // 手动擦除：滑过处把灰烬透明度抹掉，露出下方内容
       const e = E[i]
@@ -238,12 +249,13 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
     for (let i = 0; i < n; i++) {
       const k = ((Math.random() * (rimPts.length >> 1)) | 0) * 2
       sparks.push({
-        x: rimPts[k],
+        x: rimPts[k] + (Math.random() - 0.5) * 3,
         y: rimPts[k + 1],
         vx: (Math.random() - 0.5) * 0.5,
-        vy: -(0.4 + Math.random() * 1.4),
+        vy: -(0.5 + Math.random() * 1.1),
         life: 0,
-        max: 40 + Math.random() * 60,
+        max: 40 + Math.random() * 55,
+        size: 3 + Math.random() * 6,
       })
     }
     if (sparks.length > 700) sparks = sparks.slice(-700)
@@ -255,10 +267,12 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
     ctx.save()
     ctx.globalCompositeOperation = 'lighter'
     for (const s of sparks) {
-      const a = Math.max(0, 1 - s.life / s.max)
-      ctx.fillStyle = `rgba(255,${(150 + 80 * a) | 0},70,${a})`
-      ctx.fillRect(s.x, s.y, 1.4, 1.4)
+      const k = Math.max(0, 1 - s.life / s.max) // 1→0 渐隐
+      const sz = s.size * (0.5 + k * 0.8)
+      ctx.globalAlpha = k * k
+      ctx.drawImage(sparkSprite, s.x - sz, s.y - sz, sz * 2, sz * 2)
     }
+    ctx.globalAlpha = 1
     ctx.restore()
     if (debug) {
       ctx.fillStyle = 'rgba(123,255,206,.9)'
@@ -281,9 +295,10 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
     }
     spawnSparks()
     for (const s of sparks) {
+      s.vy -= 0.012 * f // 浮力：越升越快
+      s.vx += (Math.random() - 0.5) * 0.18 * f // 闪烁横移
       s.x += s.vx * f
       s.y += s.vy * f
-      s.vx += (Math.random() - 0.5) * 0.1
       s.life += f
     }
     sparks = sparks.filter((s) => s.life < s.max)

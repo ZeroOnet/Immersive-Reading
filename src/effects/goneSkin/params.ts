@@ -39,8 +39,8 @@ export const defaultParams: GoneSkinParams = {
   ragged: 0.85,
   ember: 0.05,
   sparks: 50,
-  charColor: '#1a0f08',
-  emberColor: '#ff7a2a',
+  charColor: '#1a0f0b', // 炭黑（≈ demo char[26,15,11]）
+  emberColor: '#ff6a1a', // 灼烧前沿辉光色
   ashColor: '#0d0907',
   eraseRadius: 0.1,
 }
