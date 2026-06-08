@@ -182,6 +182,23 @@ $('btn-export').onclick = async () => {
   }
 }
 
+// Production：把当前 effect 整套资源 + 调好的参数定稿到 production/<effectId>/（每 effect 只留最新）
+$('btn-production').onclick = async () => {
+  if (!current) return
+  try {
+    const res = await fetch('/__lab/save-production', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ effectId: current.mod.id, params: current.handle.getParams() }),
+    })
+    const j = await res.json()
+    if (j.ok) showToast(`🏁 已定稿 → ${j.dir}（${j.files} 个文件）`)
+    else showToast(`定稿失败：${j.error}`)
+  } catch (err) {
+    showToast(`定稿失败：${String(err)}`)
+  }
+}
+
 // boot
 load(effects[0])
 applyViewport() // 启动即套用默认视口（Phone 375×794）

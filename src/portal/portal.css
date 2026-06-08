@@ -1,0 +1,160 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+html {
+  /* 整屏 scroll-snap */
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  background: #050505;
+  --phone-scale: 0.85;
+}
+body.portal {
+  background: #050505;
+  color: #ece7f5;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'PingFang SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --accent: #66cbe1;
+}
+
+/* ── 每屏 ── */
+.screen {
+  position: relative;
+  min-height: 100svh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+/* 局部光源：从强调色方向漫出的极淡辉光 */
+.screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 50% at 30% 40%, color-mix(in srgb, var(--accent, #66cbe1) 16%, transparent), transparent 70%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 28px;
+  text-align: center;
+}
+/* 有手机的屏：文案靠左，给右侧 fixed 手机让位 */
+.screen.has-phone .copy {
+  max-width: 44vw;
+  margin: 0 auto 0 0;
+  padding-left: clamp(28px, 7vw, 120px);
+  text-align: left;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent, #66cbe1);
+}
+.copy h2 {
+  margin: 0 0 18px;
+  font-family: ui-serif, 'Songti SC', 'Source Han Serif CN', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.18;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+.copy .line {
+  margin: 0 0 12px;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.6;
+  color: #b6aecb;
+}
+.copy .book {
+  margin: 18px 0 0;
+  font-style: italic;
+  color: var(--accent, #66cbe1);
+  font-size: 1.05rem;
+}
+.copy .hint {
+  margin: 26px 0 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent, #66cbe1) 80%, #fff 20%);
+  opacity: 0.85;
+}
+
+/* Hero：沿用「文案靠左 + 手机靠右」布局，仅放大标题 */
+.screen.screen--hero.has-phone .copy h2 {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+}
+
+/* ── 全局手机 ── */
+.portal-phone {
+  position: fixed;
+  right: clamp(24px, 7vw, 160px);
+  top: 50%;
+  width: 395px;
+  height: 814px;
+  padding: 10px;
+  border-radius: 54px;
+  background: #0c0c10;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06), 0 40px 90px rgba(0, 0, 0, 0.6),
+    0 0 80px color-mix(in srgb, var(--accent, #66cbe1) 18%, transparent);
+  transform: translateY(-50%) scale(var(--phone-scale, 0.85));
+  transform-origin: center center;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.portal-phone.present {
+  opacity: 1;
+  pointer-events: auto;
+}
+.portal-phone.phone-fade {
+  opacity: 0 !important;
+}
+.portal-phone-stage {
+  position: relative;
+  width: 375px;
+  height: 794px;
+  border-radius: 44px;
+  overflow: hidden;
+  background: #000;
+}
+.portal-phone-island {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 28px;
+  border-radius: 16px;
+  background: #000;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  /* 窄屏：手机回到内容流下方、文案铺满（v1 先简单兜底） */
+  .screen.has-phone .copy {
+    max-width: 760px;
+    margin: 0 auto;
+    padding-left: 28px;
+    text-align: center;
+  }
+  .portal-phone {
+    right: 50%;
+    transform: translate(50%, -50%) scale(var(--phone-scale, 0.7));
+  }
+}
