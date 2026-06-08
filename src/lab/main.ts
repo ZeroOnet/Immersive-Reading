@@ -121,9 +121,9 @@ slowInput.oninput = () => {
 $<HTMLInputElement>('debug').onchange = (e) =>
   current?.handle.setDebug?.((e.target as HTMLInputElement).checked)
 
-// ── 视口模拟（成品是移动端优先）──
+// ── 视口模拟（成品是移动端优先；默认 Phone 375×794 = 设计稿尺寸，还原最准）──
 const vp = $<HTMLSelectElement>('viewport')
-vp.onchange = () => {
+function applyViewport() {
   if (vp.value === 'full') {
     stage.style.width = ''
     stage.style.height = ''
@@ -136,6 +136,7 @@ vp.onchange = () => {
   }
   current?.handle.resize()
 }
+vp.onchange = applyViewport
 
 // ── 导出 ──
 $('btn-copy').onclick = async () => {
@@ -183,3 +184,4 @@ $('btn-export').onclick = async () => {
 
 // boot
 load(effects[0])
+applyViewport() // 启动即套用默认视口（Phone 375×794）
