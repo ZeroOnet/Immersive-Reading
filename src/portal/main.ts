@@ -153,6 +153,9 @@ function unmountGone() {
 
 // 模块二·血字的研究（m2-sherlock）：demo 卡片 → 实跑 sherlockSkin；左侧三按钮触发三状态
 let sherlockHandle: EffectHandle<unknown> | null = null
+let sherlockBgm: HTMLAudioElement | null = null
+let sherlockBgmCleanup: (() => void) | null = null
+const sherlockRainUrl = new URL('./assets/audio/m2-sherlock-rain.mp3', import.meta.url).href
 function mountSherlock() {
   if (sherlockHandle) return
   const card = document.getElementById('m2sh-card')
@@ -162,10 +165,31 @@ function mountSherlock() {
   document
     .querySelectorAll<HTMLElement>('.m2-step')
     .forEach((b) => b.classList.toggle('active', b.dataset.step === '1'))
+  // 背景雨声循环；浏览器禁止带声 autoplay → 首次交互后再播
+  sherlockBgm = new Audio(sherlockRainUrl)
+  sherlockBgm.loop = true
+  sherlockBgm.volume = 0.45
+  sherlockBgm.play().catch(() => {
+    const start = () => {
+      void sherlockBgm?.play().catch(() => {})
+    }
+    window.addEventListener('click', start, { once: true })
+    window.addEventListener('touchstart', start, { once: true, passive: true })
+    window.addEventListener('keydown', start, { once: true })
+    sherlockBgmCleanup = () => {
+      window.removeEventListener('click', start)
+      window.removeEventListener('touchstart', start)
+      window.removeEventListener('keydown', start)
+    }
+  })
 }
 function unmountSherlock() {
   sherlockHandle?.destroy()
   sherlockHandle = null
+  sherlockBgm?.pause()
+  sherlockBgm = null
+  sherlockBgmCleanup?.()
+  sherlockBgmCleanup = null
 }
 // 三按钮接线：点击切换高亮 + 调 sherlock.demoStep
 document.querySelectorAll<HTMLElement>('.m2-step').forEach((btn) => {
