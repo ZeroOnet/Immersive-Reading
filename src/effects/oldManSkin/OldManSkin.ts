@@ -40,6 +40,8 @@ export function mountOldManSkin(
 
   // 背景：海面缓慢涌浪视频（首帧=尾帧无缝循环），带声播放。
   // 浏览器禁止带声 autoplay → 被拒时降级静音播 + 首次交互（点击/触摸/按键）解除静音
+  // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 99:67（x=-22 y=0 w=447 h=794）；溢出由 root overflow:hidden 裁掉
+  const BG_VIDEO_FRAME = { left: -22, top: 0, width: 447, height: 794 }
   const im = document.createElement('video')
   im.src = bg
   im.autoplay = true
@@ -47,7 +49,9 @@ export function mountOldManSkin(
   im.playsInline = true
   im.setAttribute('playsinline', '')
   im.setAttribute('webkit-playsinline', '')
-  im.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;'
+  im.style.cssText =
+    `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+    'object-fit:cover;pointer-events:none;'
   root.appendChild(im)
   im.muted = false
   im.volume = 1
