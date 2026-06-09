@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <title>2026 扇贝黑客松大赛 · Magic Text Reading</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400&display=swap" rel="stylesheet" />
   </head>
   <body class="portal">
     <!-- 路演门户：Apple 式黑底滚动发布会。固定 1470 宽，按 视口宽/1470 等比缩放铺满。 -->
-    <div id="portal-root">
-      <div id="portal-scale">
+    <!-- 固定视口 + 分页淡入淡出（iOS UIScrollView isPagingEnabled 式）：
+         视口不滚动，滚动手势整页 crossfade 替换内容 -->
+    <div id="portal-viewport">
         <!-- ============ 首屏 Hero ============ -->
-        <section class="screen hero" aria-label="2026扇贝黑客松大赛首屏">
+        <section class="page hero active" aria-label="2026扇贝黑客松大赛首屏">
           <h1 class="english-title">INTERACTIVE STORYTELLING</h1>
 
           <div class="book-stack" aria-hidden="true">
@@ -44,8 +48,38 @@
           </nav>
         </section>
 
+        <!-- ============ 模块一 Module 1 · 置身其中（呼啸山庄）============ -->
+        <section class="page module1" aria-label="模块一 置身其中">
+          <!-- 背景：设计图自带背景图（同一模块内固定相同）-->
+          <div class="m1-bg"></div>
+          <div class="m1-bg-block"></div>
+
+          <div class="m1-num"></div>
+          <div class="m1-copy">
+            <p>把文字描绘的世界</p>
+            <p>变成用户正在进入的精神领地</p>
+          </div>
+
+          <h2 class="m1-title-en">ATMOSPHERE</h2>
+          <p class="m1-title-cn">置身其中</p>
+
+          <!-- 书卡：实跑 wutheringSkin（main.ts 进视口时挂载） -->
+          <div class="m1-card" id="m1-card"></div>
+
+          <p class="m1-quote m1-quote-en1">“Whatever our souls are made of,</p>
+          <p class="m1-quote m1-quote-en2">his and mine are the same.”</p>
+          <p class="m1-quote m1-quote-en3">“He’s more myself than I am.”</p>
+          <p class="m1-quote m1-quote-cn1">无论我们的灵魂由什么构成，<br />　　　他的和我的都是一样的。</p>
+          <p class="m1-quote m1-quote-cn2">他比我更像我自己。</p>
+
+          <p class="m1-cite">
+            <span>《呼啸山庄》</span><br />
+            <span class="m1-cite-en">Wuthering Heights</span><span>, 1945</span>
+          </p>
+        </section>
+
         <!-- ============ 尾屏 Ending ============ -->
-        <section class="screen ending" aria-label="结尾展示屏">
+        <section class="page ending" aria-label="结尾展示屏">
           <div class="ending-frame">
             <h1 class="ending-title">
               <span>INTERACTIVE </span>
@@ -84,7 +118,7 @@
         </section>
 
         <!-- ============ 横排屏 Row ============ -->
-        <section class="screen rows" aria-label="横排展示屏">
+        <section class="page rows" aria-label="横排展示屏">
           <div class="row-strip">
             <div class="row-card row-card-w147 row-wuthering"></div>
             <div class="row-card row-card-w148 row-old-man"></div>
@@ -98,7 +132,6 @@
             <div class="row-card row-card-w147 row-pride"></div>
           </div>
         </section>
-      </div>
     </div>
     <script type="module" src="/src/portal/main.ts"></script>
   </body>

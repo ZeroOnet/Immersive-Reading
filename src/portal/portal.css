@@ -60,27 +60,31 @@ h2 {
   margin: 0;
 }
 
-/* —— 全局缩放层：固定 1470 宽，main.ts 用 transform:scale 适配视口 —— */
-#portal-root {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
+/* —— 固定视口 + 分页（iOS isPagingEnabled 式）——
+   视口 fixed 铺满窗口；每页 1470×设计高，绝对居中，main.ts 按窗口等比缩放(transform)。
+   仅 .active 页 opacity:1 可见，翻页时 crossfade 替换。 */
+#portal-viewport {
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   background: #000;
 }
-#portal-scale {
+.page {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 1470px;
-  transform-origin: top left;
-}
-
-.screen {
-  position: relative;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
   width: 1470px;
   background: #000;
   overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  will-change: opacity;
+}
+.page.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ============================================================
@@ -430,4 +434,168 @@ h2 {
 }
 .row-pride {
   background-image: url("./assets/images/row-pride-prejudice.png");
+}
+
+/* ============================================================
+   模块一 Module 1 · 置身其中（呼啸山庄）（298:10755）
+   背景=wutheringSkin 背景视频铺满；书卡=实跑 wutheringSkin
+   ============================================================ */
+.module1 {
+  height: 956px;
+}
+/* 背景截图层（298:10758）：1570×879 顶部对齐、opacity 60，溢出右侧由 section 裁剪 */
+.m1-bg {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  width: 1570px;
+  height: 879px;
+  opacity: 0.6;
+  background: url("./assets/images/module1-bg.png") center / cover no-repeat;
+}
+/* 暗块（298:10759）：398×175 #0c0c0c */
+.m1-bg-block {
+  position: absolute;
+  z-index: 1;
+  left: 596px;
+  top: 350px;
+  width: 398px;
+  height: 175px;
+  background: #0c0c0c;
+}
+
+.m1-num {
+  position: absolute;
+  z-index: 3;
+  left: 28.54px;
+  top: 167.2px;
+  width: 84.48px;
+  height: 85.91px;
+  background: url("./assets/images/module1-num.svg") center / contain no-repeat;
+}
+.m1-copy {
+  position: absolute;
+  z-index: 3;
+  left: 146px;
+  top: 156px;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 42px;
+  line-height: 56px;
+  letter-spacing: -0.42px;
+  color: rgb(228 228 225 / 80%);
+  white-space: nowrap;
+}
+.m1-copy p {
+  margin: 0;
+}
+
+.m1-title-en {
+  position: absolute;
+  z-index: 2;
+  left: 24px;
+  top: -27px;
+  margin: 0;
+  font-family: "HW Animo Trial", sans-serif;
+  font-weight: 450;
+  font-size: 140px;
+  line-height: 168px;
+  color: var(--paper);
+  white-space: nowrap;
+}
+.m1-title-cn {
+  position: absolute;
+  z-index: 2;
+  right: 6px;
+  top: -19px;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 400;
+  font-size: 124px;
+  line-height: 149px;
+  color: var(--paper);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.m1-card {
+  position: absolute;
+  z-index: 4;
+  left: 904px;
+  top: 179px;
+  width: 380.132px;
+  height: 804.32px;
+  border-radius: 25.295px;
+  overflow: hidden;
+  background: #0a0d0f;
+}
+
+.m1-quote {
+  position: absolute;
+  z-index: 3;
+  margin: 0;
+  font-family: "Source Serif Pro", Georgia, serif;
+  white-space: nowrap;
+}
+.m1-quote-en1 {
+  left: 164px;
+  top: 375px;
+  font-size: 38px;
+  line-height: 52px;
+  color: rgb(228 228 225 / 80%);
+  filter: blur(2px);
+}
+.m1-quote-en2 {
+  left: 136px;
+  top: 429px;
+  font-size: 44px;
+  line-height: 52px;
+  color: rgb(228 228 225 / 88%);
+  filter: blur(1px);
+}
+.m1-quote-en3 {
+  right: 717px;
+  top: 640px;
+  font-size: 44px;
+  line-height: 50px;
+  color: rgb(228 228 225 / 88%);
+  text-align: right;
+}
+.m1-quote-cn1 {
+  left: 397px;
+  top: 500px;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 42px;
+  letter-spacing: -0.3px;
+  color: rgb(228 228 225 / 50%);
+}
+.m1-quote-cn2 {
+  left: 318px;
+  top: 710px;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 35px;
+  line-height: 42px;
+  letter-spacing: -0.35px;
+  color: rgb(228 228 225 / 70%);
+}
+
+.m1-cite {
+  position: absolute;
+  z-index: 3;
+  left: 39px;
+  top: 841px;
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 37px;
+  color: rgb(228 228 225 / 40%);
+  white-space: nowrap;
+}
+.m1-cite-en {
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
 }
