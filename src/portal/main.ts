@@ -229,6 +229,35 @@ document.querySelector<HTMLElement>('.m3-shake-btn')?.addEventListener('click', 
   }
 })
 
+// 模块四·言下之意（m4-undertone）：实跑 veilSkin。
+// 演示屏内点击「The dog it was that died」三段台词 / 呼吸点会 toggle veilSkin 的 tooltipOpen，
+// 这里 rAF 轮询 tooltipOpen，把大屏左侧 (原句 ↔ 解释卡) 同步切换：>0.5 → .is-after
+let undertoneHandle: (EffectHandle<unknown> & { getParams?(): { tooltipOpen?: number } }) | null = null
+let undertoneRaf = 0
+function mountUndertone() {
+  if (undertoneHandle) return
+  const card = document.getElementById('m4u-card')
+  const sect = document.querySelector<HTMLElement>('.m4-undertone')
+  const vk = effect('veilSkin')
+  if (!card || !sect || !vk) return
+  undertoneHandle = vk.mount(card, structuredClone(vk.defaultParams))
+  sect.classList.remove('is-after')
+  const sync = () => {
+    const p = undertoneHandle?.getParams?.()
+    const open = typeof p?.tooltipOpen === 'number' ? p.tooltipOpen : 0
+    sect.classList.toggle('is-after', open > 0.5)
+    undertoneRaf = requestAnimationFrame(sync)
+  }
+  undertoneRaf = requestAnimationFrame(sync)
+}
+function unmountUndertone() {
+  cancelAnimationFrame(undertoneRaf)
+  undertoneRaf = 0
+  undertoneHandle?.destroy()
+  undertoneHandle = null
+  document.querySelector('.m4-undertone')?.classList.remove('is-after')
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
@@ -237,6 +266,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m2-ring')) unmountRing()
   if (prevPage.classList.contains('m3-alice')) unmountAlice()
   if (prevPage.classList.contains('m3-fall')) unmountFall()
+  if (prevPage.classList.contains('m4-undertone')) unmountUndertone()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
@@ -244,6 +274,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (nextPage.classList.contains('m2-ring')) mountRing()
   if (nextPage.classList.contains('m3-alice')) mountAlice()
   if (nextPage.classList.contains('m3-fall')) mountFall()
+  if (nextPage.classList.contains('m4-undertone')) mountUndertone()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -255,3 +286,4 @@ if (active?.classList.contains('m2-sherlock')) mountSherlock()
 if (active?.classList.contains('m2-ring')) mountRing()
 if (active?.classList.contains('m3-alice')) mountAlice()
 if (active?.classList.contains('m3-fall')) mountFall()
+if (active?.classList.contains('m4-undertone')) mountUndertone()

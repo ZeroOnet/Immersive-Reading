@@ -1050,3 +1050,200 @@ h2 {
 .m3-stk14 { left: 94.73%; top: 53.92%; width: 18.72px; height: 17.28px; background-image: url("./assets/images/module3-stk14.png"); }
 .m3-stk15 { left: 93.06%; top: 37.96%; width: 102.24px; height: 133.92px; background-image: url("./assets/images/module3-stk15.png"); }
 .m3-stk16 { left: 91.3%; top: 4.37%; width: 128.16px; height: 182.88px; background-image: url("./assets/images/module3-stk16.png"); }
+
+/* ============================================================
+   模块四 · 言下之意 UNDERTONE（《面纱》Walter 临终一句的隐喻；321:11350 / 326:11798）
+   自动循环：is-before（默认）→ 加 is-after 类切换；JS 同步驱动 veilSkin 的 tooltipOpen
+   标题复用 .m1-title-en / .m1-title-cn
+   ============================================================ */
+.m4-bg {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #000;
+}
+.m4-bg::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6.59%; /* -63/956 */
+  width: 36.53%;  /* 537/1470 */
+  height: 99.79%; /* 954/956 */
+  background: url("./assets/images/module4-bg.png") center / cover no-repeat;
+  opacity: 0.7;
+}
+.m4-num {
+  position: absolute;
+  z-index: 3;
+  left: 1.63%;  /* 24/1470 */
+  top: 16.95%;  /* 162/956 */
+  width: 107px;
+  height: 98px;
+  background: url("./assets/images/module4-num.svg") center / contain no-repeat;
+}
+.m4-copy {
+  position: absolute;
+  z-index: 3;
+  left: 10.34%;  /* 152/1470 */
+  top: 16.32%;   /* 156/956 */
+  margin: 0;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 42px;
+  line-height: 56px;
+  letter-spacing: -0.42px;
+  color: rgb(228 228 225 / 80%);
+  white-space: nowrap;
+}
+.m4-source {
+  position: absolute;
+  z-index: 3;
+  left: 4.56%;   /* 67/1470 */
+  top: 46.34%;   /* 443/956 */
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 38px;
+  letter-spacing: -0.38px;
+  color: rgb(228 228 225 / 80%);
+  white-space: nowrap;
+}
+/* before 状态可见的大句（Kalam 手写） */
+.m4-quote {
+  position: absolute;
+  z-index: 3;
+  left: 4.90%;   /* 72/1470 */
+  top: 63.81%;   /* 610/956 */
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.m4-quote-en {
+  margin: 0;
+  font-family: "Kalam", cursive;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 60px;
+  color: #d1a96d;
+  white-space: nowrap;
+}
+.m4-quote-zh {
+  margin: 12px 0 0 1.5em;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 38px;
+  line-height: 38px;
+  letter-spacing: 0.56px;
+  color: #d6c8b1;
+  white-space: nowrap;
+}
+/* after 状态可见的解释卡（米色卡，对应 veilSkin noteBox 的放大版，342:42/43/44/45/46）
+   两层结构：外壳只做定位 + 文字层；内嵌 ::before 做「带 blur 的米色背板」——
+   blur 不能直接加在外壳，否则文字也会糊（veilSkin 同款写法）。
+   字体：JiangChengXieHei 只载了 300/400 两个字重，500/700/900 会回退到系统黑体 → 失去斜黑感。
+   故用 Noto Sans SC 系列 + font-style:italic 近似那个「斜」；加粗一律靠字重，不靠 css 斜体。 */
+.m4-note {
+  position: absolute;
+  z-index: 3;
+  left: 7.14%;   /* 105/1470 */
+  top: 55.75%;   /* 533/956 */
+  width: 36.87%; /* 542/1470 */
+  padding: 33px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  /* JiangCheng XieHei 自身就是斜黑体（不可加载到 500/700/900 字重），故卡内文字改用
+     Noto Sans SC + font-style:italic 近似那个斜：字重齐全、斜度统一，加粗不会扁掉。 */
+  font-family: "Noto Sans SC", "Source Han Sans CN", "PingFang SC", sans-serif;
+  font-style: italic;
+  color: #1e2e2e;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.m4-note::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 18.9px solid #d6c8b1;
+  border-radius: 33.6px;
+  background: #d6c8b1;
+  opacity: 0.96;
+  filter: blur(6.3px);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 35%);
+}
+.m4-note-intro,
+.m4-note-quote {
+  position: relative;
+  z-index: 1;
+}
+.m4-note-intro {
+  margin: 0;
+  font-size: 32px;
+  line-height: 42px;
+  font-weight: 300;
+}
+.m4-note-intro b {
+  font-weight: 500;
+}
+.m4-note-src {
+  font-size: 28px;
+  color: rgb(30 46 46 / 40%);
+}
+.m4-note-src b {
+  font-weight: 700;
+}
+.m4-note-quote {
+  display: flex;
+  align-items: center;
+  padding-left: 16.8px;
+  border-left: 4.2px solid rgb(30 46 46 / 20%);
+}
+.m4-note-quote p {
+  margin: 0;
+  font-size: 34px;
+  line-height: 46px;
+  font-weight: 500;
+  color: #30858c;
+  mix-blend-mode: multiply;
+}
+.m4-note-quote .b1 {
+  font-weight: 900;
+}
+.m4-note-quote .b2 {
+  font-weight: 700;
+}
+.m4-hint {
+  position: absolute;
+  z-index: 3;
+  left: 83.67%;   /* 1230/1470 */
+  top: 86.51%;    /* 827/956 */
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 42px;
+  letter-spacing: -0.3px;
+  color: rgb(228 228 225 / 80%);
+  white-space: nowrap;
+}
+/* 演示卡片：phone 居于右半中部（覆写 .m1-card 的 left） */
+.m4-undertone-card {
+  left: 67.34%;  /* (1470/2 + 254.83)/1470 */
+}
+/* before（默认）↔ after（加 .is-after 类）的 crossfade */
+.m4-undertone .m4-quote {
+  opacity: 1;
+  transform: translateY(0);
+}
+.m4-undertone .m4-note {
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  pointer-events: none;
+}
+.m4-undertone.is-after .m4-quote {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.m4-undertone.is-after .m4-note {
+  opacity: 0.96;
+  transform: translateY(0) scale(1);
+}
