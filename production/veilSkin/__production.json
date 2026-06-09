@@ -1,0 +1,25 @@
+{
+  "effectId": "veilSkin",
+  "params": {
+    "titleEn": "The Painted Veil",
+    "titleZh": "面纱",
+    "body": "In the end, love is no longer a feeling but a choice made in the face of suffering. In a remote Chinese town racked by cholera, where the air is thick with fear and the stench of death, a doctor who once fled from marriage stays behind to serve. Exhausted,\nhollowed out.",
+    "bodyColor": "#eae5dc",
+    "phrase1": "“The dog",
+    "phrase2": "it was",
+    "phrase3": "that died.”",
+    "phraseColor": "#d6c8b1",
+    "translation": "（死的确是狗）",
+    "translationColor": "#d6c8b1",
+    "tooltipOpen": 0,
+    "noteIntro": "这是 Walter 临死前留下的一句",
+    "noteIntroBold": "自嘲式暗讽",
+    "noteSrcPrefix": "（原句出自",
+    "noteSrc": "《疯狗之死挽歌》",
+    "noteSrcSuffix": "），这里表达的意思是：",
+    "noteQuote": "我原本想**用霍乱惩罚你**，没想到**最后死的却是我自己**。",
+    "scrim": 0.18,
+    "timeColor": "#d6c8b1"
+  },
+  "savedAt": "2026-06-09T05:49:03.985Z"
+}

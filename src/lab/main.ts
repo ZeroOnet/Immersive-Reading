@@ -28,6 +28,15 @@ let gui: GUI | null = null
 let paused = false
 let slow = 1
 
+// 已生成 production 的 effect（production/<id>/__production.json 存在）→ Lab 标题加 ✅
+// import.meta.glob 静态探测；dev 下点 Production 写入新文件会触发 HMR，✅ 自动出现
+const PRODUCED_IDS = new Set(
+  Object.keys(import.meta.glob('/production/*/__production.json'))
+    .map((p) => /\/production\/([^/]+)\//.exec(p)?.[1] ?? '')
+    .filter(Boolean),
+)
+const withMark = (id: string, title: string) => (PRODUCED_IDS.has(id) ? `${title} ✅` : title)
+
 function showToast(msg: string) {
   toast.textContent = msg
   toast.classList.add('show')
@@ -43,7 +52,7 @@ function buildGUI() {
   gui?.destroy()
   if (!current) return
   const { mod, handle, params } = current
-  gui = new GUI({ container: guiHost, title: mod.title })
+  gui = new GUI({ container: guiHost, title: withMark(mod.id, mod.title) })
 
   if (mod.presets) {
     const names = ['(default)', ...Object.keys(mod.presets)]
@@ -94,7 +103,7 @@ const select = $<HTMLSelectElement>('effect-select')
 effects.forEach((e) => {
   const o = document.createElement('option')
   o.value = e.id
-  o.textContent = e.title
+  o.textContent = withMark(e.id, e.title)
   select.appendChild(o)
 })
 select.onchange = () => {
