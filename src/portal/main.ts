@@ -1,85 +1,24 @@
 import './portal.css'
-import { SCREENS, type PortalScreen } from './data'
-import { createGlobalPhone } from './phone'
 
-const app = document.getElementById('app')!
+// 门户固定 1470 宽设计。整页按 min(视口宽/1470, 视口高/首屏高) 等比缩放，
+// 保证首屏(1470×956)在当前窗口内宽高都完整显示（不被裁切），并水平居中。
+// transform:scale 不改变布局高度，需用 JS 把外层 root 高度设为 缩放后总高度，
+// 页面纵向滚动才正确（首屏 → 尾屏 → 横排屏）。
+const STAGE_W = 1470
+const HERO_H = 956
+const root = document.getElementById('portal-root')!
+const scale = document.getElementById('portal-scale')!
 
-// 全局手机：fixed 叠在所有屏之上，按当前屏切换内容
-const phone = createGlobalPhone()
-document.body.appendChild(phone.el)
-
-function buildScreen(s: PortalScreen): HTMLElement {
-  const sec = document.createElement('section')
-  sec.className = `screen screen--${s.kind}${s.effectId ? ' has-phone' : ' no-phone'}`
-  sec.dataset.effect = s.effectId ?? ''
-  if (s.accent) sec.style.setProperty('--accent', s.accent)
-
-  const copy = document.createElement('div')
-  copy.className = 'copy'
-  if (s.eyebrow) {
-    const e = document.createElement('p')
-    e.className = 'eyebrow'
-    e.textContent = s.eyebrow
-    copy.appendChild(e)
-  }
-  const h = document.createElement('h2')
-  h.textContent = s.title
-  copy.appendChild(h)
-  for (const line of s.lines ?? []) {
-    const p = document.createElement('p')
-    p.className = 'line'
-    p.textContent = line
-    copy.appendChild(p)
-  }
-  if (s.book) {
-    const b = document.createElement('p')
-    b.className = 'book'
-    b.textContent = s.book
-    copy.appendChild(b)
-  }
-  if (s.hint) {
-    const hint = document.createElement('p')
-    hint.className = 'hint'
-    hint.textContent = `↳ ${s.hint}`
-    copy.appendChild(hint)
-  }
-  sec.appendChild(copy)
-  return sec
+function fit() {
+  const s = Math.min(window.innerWidth / STAGE_W, window.innerHeight / HERO_H)
+  scale.style.transform = `scale(${s})`
+  scale.style.left = `${(window.innerWidth - STAGE_W * s) / 2}px` // 水平居中
+  root.style.height = `${scale.offsetHeight * s}px`
 }
 
-const sections = SCREENS.map((s) => {
-  const el = buildScreen(s)
-  app.appendChild(el)
-  return el
-})
+fit()
+window.addEventListener('resize', fit)
 
-// 当前最居中的屏 → 驱动手机内容 + 局部强调色
-const io = new IntersectionObserver(
-  (entries) => {
-    let best: IntersectionObserverEntry | null = null
-    for (const e of entries) {
-      if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e
-    }
-    if (!best || best.intersectionRatio < 0.55) return
-    const el = best.target as HTMLElement
-    phone.show(el.dataset.effect || null)
-    document.body.style.setProperty('--accent', getComputedStyle(el).getPropertyValue('--accent') || '#66cbe1')
-  },
-  { threshold: [0.55, 0.8] },
-)
-sections.forEach((s) => io.observe(s))
-
-// 手机内部恒为 375×814（保住各 effect 的固定 px 布局），整体按视口高度等比缩放
-function fitPhone() {
-  const scale = Math.min(1, (window.innerHeight * 0.86) / 814)
-  document.documentElement.style.setProperty('--phone-scale', scale.toFixed(3))
-}
-fitPhone()
-window.addEventListener('resize', () => {
-  fitPhone()
-  phone.resize()
-})
-
-// 首屏即激活第一屏的手机内容（IO 在初次进入时也会触发，这里兜底）
-phone.show(SCREENS[0].effectId ?? null)
-
+// 字体/卡片图加载完成后内容高度变化 → 重新测量
+if (document.fonts?.ready) void document.fonts.ready.then(fit)
+new ResizeObserver(fit).observe(scale)

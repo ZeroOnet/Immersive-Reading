@@ -1,17 +1,105 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#050505" />
-    <title>文本显灵 · Magic Text Reading</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <title>2026 扇贝黑客松大赛 · Magic Text Reading</title>
   </head>
   <body class="portal">
-    <!-- 路演门户：Apple 式黑底滚动发布会。单台全局手机 + scroll-snap 逐屏切换。 -->
-    <div id="app"></div>
+    <!-- 路演门户：Apple 式黑底滚动发布会。固定 1470 宽，按 视口宽/1470 等比缩放铺满。 -->
+    <div id="portal-root">
+      <div id="portal-scale">
+        <!-- ============ 首屏 Hero ============ -->
+        <section class="screen hero" aria-label="2026扇贝黑客松大赛首屏">
+          <h1 class="english-title">INTERACTIVE STORYTELLING</h1>
+
+          <div class="book-stack" aria-hidden="true">
+            <div class="book-cover book-back"></div>
+            <div class="book-cover book-front"></div>
+          </div>
+
+          <div class="chinese-title" aria-label="多模态叙事 阅读新体验">
+            <p class="chinese-left">多模态叙事</p>
+            <p class="chinese-right">阅读新体验</p>
+          </div>
+
+          <nav class="top-nav" aria-label="顶部导航">
+            <p class="nav-brand">2026扇贝黑客松大赛</p>
+            <p class="nav-center">GOOD LUCK</p>
+            <div class="nav-members">
+              <div class="member member-light">
+                <span class="member-inner">
+                  <span class="member-logo member-logo-zhao"></span>
+                  <span>赵清雨</span>
+                </span>
+              </div>
+              <div class="member member-dark">
+                <span class="member-inner">
+                  <span class="member-logo member-logo-li"></span>
+                  <span>李文康</span>
+                </span>
+              </div>
+            </div>
+          </nav>
+        </section>
+
+        <!-- ============ 尾屏 Ending ============ -->
+        <section class="screen ending" aria-label="结尾展示屏">
+          <div class="ending-frame">
+            <h1 class="ending-title">
+              <span>INTERACTIVE </span>
+              <span>STORYTELLING</span>
+            </h1>
+
+            <div class="ending-card card-old-man"></div>
+            <div class="ending-card card-wind"></div>
+            <div class="ending-card card-scarlet"></div>
+            <div class="ending-card card-alice"></div>
+            <div class="ending-card card-veil"></div>
+            <div class="ending-card card-pride"></div>
+            <div class="ending-card card-rings"></div>
+
+            <p class="ending-copy copy-enter">
+              <span>把文字描绘的世界</span>
+              <span>变成用户正在进入的精神领地</span>
+            </p>
+            <p class="ending-copy copy-trigger">
+              <span>核心情节不是平铺直叙</span>
+              <span>而是让用户亲手触发</span>
+            </p>
+            <p class="ending-copy copy-more">
+              <span>还能带来哪些</span>
+              <span>更多可能性</span>
+            </p>
+            <p class="ending-copy copy-impossible">
+              <span>把不可能发生的文学想象</span>
+              <span>变成屏幕里的眼见为实</span>
+            </p>
+            <p class="ending-copy copy-subtext">
+              <span>揭开一句话背后的</span>
+              <span>真实情绪、谎言与潜台词</span>
+            </p>
+          </div>
+        </section>
+
+        <!-- ============ 横排屏 Row ============ -->
+        <section class="screen rows" aria-label="横排展示屏">
+          <div class="row-strip">
+            <div class="row-card row-card-w147 row-wuthering"></div>
+            <div class="row-card row-card-w148 row-old-man"></div>
+            <div class="row-card row-card-w148 row-wind"></div>
+            <div class="row-card row-card-w147 row-scarlet"></div>
+            <div class="row-card row-card-w147 row-rings"></div>
+            <div class="row-card row-card-w147 row-alice"></div>
+            <div class="row-card row-card-w148 row-alice-hole"></div>
+            <div class="row-card row-card-w148 row-veil-1"></div>
+            <div class="row-card row-card-w147 row-veil-2"></div>
+            <div class="row-card row-card-w147 row-pride"></div>
+          </div>
+        </section>
+      </div>
+    </div>
     <script type="module" src="/src/portal/main.ts"></script>
   </body>
 </html>

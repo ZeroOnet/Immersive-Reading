@@ -1,160 +1,433 @@
+/* ============================================================
+   路演门户 · Magic Text Reading
+   首屏 / 尾屏 / 横排屏 忠实移植自团队官方设计（1470×956 桌面发布会）
+   整页固定 1470 宽，按 视口宽/1470 等比缩放铺满（见 main.ts）
+   ============================================================ */
+
+@font-face {
+  font-family: "MiSans VF";
+  src: url("./assets/fonts/MiSans-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: block;
+}
+@font-face {
+  font-family: "HW Animo Trial";
+  src: url("./assets/fonts/HWAnimoTRIAL-R500.ttf") format("truetype");
+  font-weight: 450;
+  font-display: block;
+}
+@font-face {
+  font-family: "JiangCheng XieHei";
+  src: url("./assets/fonts/JiangChengXieHei-400W.ttf") format("truetype");
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: "JiangCheng XieHei";
+  src: url("./assets/fonts/JiangChengXieHei-300W.ttf") format("truetype");
+  font-weight: 300;
+  font-display: block;
+}
+
+:root {
+  --paper: #e4e4e1;
+  --paper-nav: #e4e4e0;
+  --badge-light: #e1e1dd;
+  --badge-dark: #191817;
+}
+
 * {
   box-sizing: border-box;
 }
+
 html,
 body {
+  width: 100%;
   margin: 0;
   padding: 0;
-}
-html {
-  /* 整屏 scroll-snap */
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  background: #050505;
-  --phone-scale: 0.85;
-}
-body.portal {
-  background: #050505;
-  color: #ece7f5;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'PingFang SC', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  --accent: #66cbe1;
+  background: #000;
+  overflow-x: hidden;
 }
 
-/* ── 每屏 ── */
+body {
+  font-family: "MiSans VF", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+}
+
+p,
+h1,
+h2 {
+  margin: 0;
+}
+
+/* —— 全局缩放层：固定 1470 宽，main.ts 用 transform:scale 适配视口 —— */
+#portal-root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+#portal-scale {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1470px;
+  transform-origin: top left;
+}
+
 .screen {
   position: relative;
-  min-height: 100svh;
-  scroll-snap-align: start;
-  display: flex;
-  align-items: center;
+  width: 1470px;
+  background: #000;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-/* 局部光源：从强调色方向漫出的极淡辉光 */
-.screen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 50% at 30% 40%, color-mix(in srgb, var(--accent, #66cbe1) 16%, transparent), transparent 70%);
-  opacity: 0.7;
-  pointer-events: none;
 }
 
-.copy {
-  position: relative;
+/* ============================================================
+   首屏 Hero（298:10126）
+   ============================================================ */
+.hero {
+  height: 956px;
+}
+
+.english-title {
+  position: absolute;
   z-index: 1;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 28px;
+  left: calc(50% + 2px);
+  top: 362px;
+  transform: translateX(-50%);
+  color: var(--paper);
+  font-family: "HW Animo Trial", sans-serif;
+  font-size: 118px;
+  font-weight: 450;
+  line-height: 142px;
+  letter-spacing: 0;
+  white-space: nowrap;
   text-align: center;
 }
-/* 有手机的屏：文案靠左，给右侧 fixed 手机让位 */
-.screen.has-phone .copy {
-  max-width: 44vw;
-  margin: 0 auto 0 0;
-  padding-left: clamp(28px, 7vw, 120px);
-  text-align: left;
-}
 
-.eyebrow {
-  margin: 0 0 14px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent, #66cbe1);
-}
-.copy h2 {
-  margin: 0 0 18px;
-  font-family: ui-serif, 'Songti SC', 'Source Han Serif CN', Georgia, serif;
-  font-weight: 600;
-  line-height: 1.18;
-  font-size: clamp(1.8rem, 4vw, 3rem);
-}
-.copy .line {
-  margin: 0 0 12px;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
-  line-height: 1.6;
-  color: #b6aecb;
-}
-.copy .book {
-  margin: 18px 0 0;
-  font-style: italic;
-  color: var(--accent, #66cbe1);
-  font-size: 1.05rem;
-}
-.copy .hint {
-  margin: 26px 0 0;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 12.5px;
-  letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--accent, #66cbe1) 80%, #fff 20%);
-  opacity: 0.85;
-}
-
-/* Hero：沿用「文案靠左 + 手机靠右」布局，仅放大标题 */
-.screen.screen--hero.has-phone .copy h2 {
-  font-size: clamp(2.4rem, 5vw, 4rem);
-}
-
-/* ── 全局手机 ── */
-.portal-phone {
-  position: fixed;
-  right: clamp(24px, 7vw, 160px);
-  top: 50%;
-  width: 395px;
-  height: 814px;
-  padding: 10px;
-  border-radius: 54px;
-  background: #0c0c10;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06), 0 40px 90px rgba(0, 0, 0, 0.6),
-    0 0 80px color-mix(in srgb, var(--accent, #66cbe1) 18%, transparent);
-  transform: translateY(-50%) scale(var(--phone-scale, 0.85));
-  transform-origin: center center;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-  z-index: 5;
-}
-.portal-phone.present {
-  opacity: 1;
-  pointer-events: auto;
-}
-.portal-phone.phone-fade {
-  opacity: 0 !important;
-}
-.portal-phone-stage {
-  position: relative;
-  width: 375px;
-  height: 794px;
-  border-radius: 44px;
-  overflow: hidden;
-  background: #000;
-}
-.portal-phone-island {
+.book-stack {
   position: absolute;
-  top: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 96px;
-  height: 28px;
-  border-radius: 16px;
-  background: #000;
-  z-index: 10;
-  pointer-events: none;
+  z-index: 2;
+  left: 573px;
+  top: 178px;
+  width: 327.8px;
+  height: 695.2px;
 }
 
-@media (max-width: 900px) {
-  /* 窄屏：手机回到内容流下方、文案铺满（v1 先简单兜底） */
-  .screen.has-phone .copy {
-    max-width: 760px;
-    margin: 0 auto;
-    padding-left: 28px;
-    text-align: center;
-  }
-  .portal-phone {
-    right: 50%;
-    transform: translate(50%, -50%) scale(var(--phone-scale, 0.7));
-  }
+.book-cover {
+  position: absolute;
+  inset: 0;
+  width: 327.8px;
+  height: 695.2px;
+  border-radius: 22px;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.book-back {
+  background-image: url("./assets/images/book-wuthering.png");
+}
+.book-front {
+  z-index: 1;
+  background-image: url("./assets/images/book-old-man-sea.png");
+}
+
+.chinese-title {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  color: var(--paper);
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-size: 92px;
+  font-weight: 400;
+  line-height: 92px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.chinese-title p {
+  position: absolute;
+  top: 525px;
+}
+.chinese-left {
+  left: 58px;
+}
+.chinese-right {
+  left: 1416px;
+  transform: translateX(-100%);
+  text-align: right;
+}
+
+.top-nav {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  width: 1470px;
+  height: 58px;
+  color: var(--paper-nav);
+  font-family: "MiSans VF", sans-serif;
+}
+.nav-brand {
+  position: absolute;
+  left: 26px;
+  top: 26px;
+  font-size: 24px;
+  font-weight: 450;
+  line-height: 32px;
+  white-space: nowrap;
+}
+.nav-center {
+  position: absolute;
+  left: 735.5px;
+  top: 28px;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 450;
+  line-height: 24px;
+  text-align: center;
+  white-space: nowrap;
+}
+.nav-members {
+  position: absolute;
+  right: 26px;
+  top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.member {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 31px;
+  padding: 10px 8px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.member-light {
+  color: #0a0a09;
+  background: var(--badge-light);
+  font-weight: 450;
+}
+.member-dark {
+  color: #e2e2de;
+  background: var(--badge-dark);
+  font-weight: 400;
+}
+.member-inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 20px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.member-logo {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex: 0 0 auto;
+  background-size: cover;
+  background-position: center;
+}
+.member-logo-zhao {
+  background-image: url("./assets/images/avatar-zhao.png");
+}
+.member-logo-li {
+  background-image: url("./assets/images/avatar-li.png");
+}
+
+/* ============================================================
+   尾屏 Ending（298:9728）：散落书卡 + 大标题 + 散落文案
+   ============================================================ */
+.ending {
+  height: 1267px;
+}
+.ending-frame {
+  position: absolute;
+  left: 0;
+  top: 155px;
+  width: 1470px;
+  height: 956px;
+  background: #000;
+  overflow: visible;
+}
+.ending-title {
+  position: absolute;
+  z-index: 1;
+  left: calc(50% + 30px);
+  top: 365px;
+  transform: translateX(-50%);
+  color: var(--paper);
+  font-family: "HW Animo Trial", sans-serif;
+  font-size: 118px;
+  font-weight: 450;
+  line-height: 142px;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+.ending-title span {
+  display: block;
+  height: 142px;
+}
+
+.ending-card {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  border-radius: 13.2px;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.card-old-man {
+  z-index: 0;
+  left: 209.3px;
+  top: 506.75px;
+  width: 210.1px;
+  height: 444.4px;
+  background-image: url("./assets/images/ending-old-man-sea.png");
+}
+.card-wind {
+  left: 103.7px;
+  top: 40.35px;
+  width: 181.5px;
+  height: 383.9px;
+  background-image: url("./assets/images/ending-gone-with-wind.png");
+}
+.card-scarlet {
+  left: 946.3px;
+  top: 231.75px;
+  width: 205.7px;
+  height: 434.5px;
+  background-image: url("./assets/images/ending-study-scarlet.png");
+}
+.card-alice {
+  left: 640.5px;
+  top: -156.55px;
+  width: 206.8px;
+  height: 437.8px;
+  background-image: url("./assets/images/ending-alice.png");
+}
+.card-veil {
+  left: 1121.2px;
+  top: 704.75px;
+  width: 170.5px;
+  height: 360.8px;
+  background-image: url("./assets/images/ending-painted-veil.png");
+}
+.card-pride {
+  left: 1202.6px;
+  top: -46.55px;
+  width: 191.4px;
+  height: 403.7px;
+  background-image: url("./assets/images/ending-pride-prejudice.png");
+}
+.card-rings {
+  left: 734px;
+  top: 704.75px;
+  width: 191.4px;
+  height: 404.8px;
+  background-image: url("./assets/images/ending-lord-rings.png");
+}
+
+.ending-copy {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  color: rgb(228 228 225 / 80%);
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 28px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.copy-enter {
+  left: 332px;
+  top: 280px;
+}
+.copy-trigger {
+  left: 456px;
+  top: 727px;
+}
+.copy-more {
+  left: 64px;
+  top: 594px;
+}
+.copy-impossible {
+  right: 335px;
+  top: 140px;
+  text-align: right;
+}
+.copy-subtext {
+  left: 1190px;
+  top: 610px;
+}
+
+/* ============================================================
+   横排屏 Row（353:2323）：上划后的横排展示
+   ============================================================ */
+.rows {
+  height: 956px;
+}
+.row-strip {
+  position: absolute;
+  left: 32px;
+  top: 466px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  width: max-content;
+  column-gap: 11px;
+}
+.row-card {
+  display: block;
+  height: 312px;
+  flex: 0 0 auto;
+  border-radius: 16.8px;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.row-card-w147 {
+  width: 147px;
+}
+.row-card-w148 {
+  width: 148px;
+}
+.row-wuthering {
+  background-image: url("./assets/images/row-wuthering.png");
+}
+.row-old-man {
+  background-image: url("./assets/images/row-old-man-sea.png");
+}
+.row-wind {
+  background-image: url("./assets/images/row-gone-with-wind.png");
+}
+.row-scarlet {
+  background-image: url("./assets/images/row-study-scarlet.png");
+}
+.row-rings {
+  background-image: url("./assets/images/row-lord-rings.png");
+}
+.row-alice {
+  background-image: url("./assets/images/row-alice.png");
+}
+.row-alice-hole {
+  background-image: url("./assets/images/row-alice-rabbit-hole.png");
+}
+.row-veil-1 {
+  background-image: url("./assets/images/row-painted-veil-1.png");
+}
+.row-veil-2 {
+  background-image: url("./assets/images/row-painted-veil-2.png");
+}
+.row-pride {
+  background-image: url("./assets/images/row-pride-prejudice.png");
 }
