@@ -675,3 +675,55 @@ h2 {
   text-align: center;
   color: rgb(228 228 225 / 70%);
 }
+
+/* ============================================================
+   模块一 第三页 · 飘（298:10792）：复用 bg/num/copy/title/cite，
+   书卡实跑 goneSkin（Page Burn，开场 burn 1→0），引文不同
+   ============================================================ */
+.m1c-quote-en1 {
+  left: 10.88%;
+  top: 42.99%;
+  font-size: 42px;
+  line-height: 52px;
+  color: rgb(228 228 225 / 80%);
+  filter: blur(2px);
+}
+.m1c-quote-en2 {
+  left: 8.71%;
+  top: 48.64%;
+  font-size: 44px;
+  line-height: 52px;
+  color: rgb(228 228 225 / 88%);
+  filter: blur(1px);
+}
+.m1c-quote-en3 {
+  right: 48.5%;
+  top: 62.13%;
+  font-size: 42px;
+  line-height: 54px;
+  color: rgb(228 228 225 / 88%);
+  text-align: right;
+  white-space: pre-line;
+}
+.m1c-quote-cn1 {
+  left: 24.42%;
+  top: 39.02%;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 34px;
+  letter-spacing: -0.32px;
+  color: rgb(228 228 225 / 50%);
+}
+.m1c-quote-cn2 {
+  left: 30.31%;
+  top: 76.36%;
+  transform: translateX(-50%);
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 35px;
+  line-height: 42px;
+  letter-spacing: -0.35px;
+  text-align: center;
+  color: rgb(228 228 225 / 70%);
+}

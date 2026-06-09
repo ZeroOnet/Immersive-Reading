@@ -131,14 +131,37 @@ function unmountOldman() {
   rainHandle = null
 }
 
+// 模块一·飘（m1-gone）：书卡 → 实跑 goneSkin（Page Burn）；burn=0 → 开场燃烧进度 1→0
+let goneHandle: EffectHandle<unknown> | null = null
+function mountGone() {
+  if (goneHandle) return
+  const card = document.getElementById('m1c-card')
+  const g = effect('goneSkin')
+  if (card && g) {
+    const p = structuredClone(g.defaultParams) as Record<string, unknown>
+    p.burn = 0 // 燃烧进度范围 1→0（开场 introBurn 1 → burn 0）
+    p.edgeReach = 1 // 可燃范围
+    p.ragged = 0.35 // 前沿碎裂
+    p.ember = 0.025 // 余烬带宽
+    goneHandle = g.mount(card, p)
+  }
+}
+function unmountGone() {
+  goneHandle?.destroy()
+  goneHandle = null
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
+  if (prevPage.classList.contains('m1-gone')) unmountGone()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
+  if (nextPage.classList.contains('m1-gone')) mountGone()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
 const active = pages[cur]
 if (active?.classList.contains('m1-wuther')) mountWuther()
 if (active?.classList.contains('m1-oldman')) mountOldman()
+if (active?.classList.contains('m1-gone')) mountGone()
