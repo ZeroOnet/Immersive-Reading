@@ -412,6 +412,19 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
     reset() {
       setExpanded(false)
     },
+    demoStep(step: number) {
+      // 演示门户三按钮：1 发现线索(滚动正文到下一锚点) / 2 点 Lestrade 原句 / 3 点 Sherlock 原句
+      if (step === 1) {
+        if (expanded) setExpanded(false)
+        const cur = bodyBox.scrollTop
+        const target = anchorParas.find((p) => p.offsetTop > cur + 4) ?? anchorParas[0]
+        if (target) bodyBox.scrollTo({ top: target.offsetTop, behavior: 'smooth' })
+      } else if (step === 2) {
+        triggerSpans[0]?.click() // → letters 视频 + Lestrade 气泡
+      } else if (step === 3) {
+        triggerSpans[1]?.click() // → revenge 视频 + Sherlock 气泡
+      }
+    },
     getParams() {
       return { ...params }
     },

@@ -151,13 +151,40 @@ function unmountGone() {
   goneHandle = null
 }
 
+// 模块二·血字的研究（m2-sherlock）：demo 卡片 → 实跑 sherlockSkin；左侧三按钮触发三状态
+let sherlockHandle: EffectHandle<unknown> | null = null
+function mountSherlock() {
+  if (sherlockHandle) return
+  const card = document.getElementById('m2sh-card')
+  const sk = effect('sherlockSkin')
+  if (card && sk) sherlockHandle = sk.mount(card, structuredClone(sk.defaultParams))
+  // 进页时按钮高亮重置到 STEP 1
+  document
+    .querySelectorAll<HTMLElement>('.m2-step')
+    .forEach((b) => b.classList.toggle('active', b.dataset.step === '1'))
+}
+function unmountSherlock() {
+  sherlockHandle?.destroy()
+  sherlockHandle = null
+}
+// 三按钮接线：点击切换高亮 + 调 sherlock.demoStep
+document.querySelectorAll<HTMLElement>('.m2-step').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const step = Number(btn.dataset.step)
+    document.querySelectorAll('.m2-step').forEach((b) => b.classList.toggle('active', b === btn))
+    sherlockHandle?.demoStep?.(step)
+  })
+})
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
   if (prevPage.classList.contains('m1-gone')) unmountGone()
+  if (prevPage.classList.contains('m2-sherlock')) unmountSherlock()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
+  if (nextPage.classList.contains('m2-sherlock')) mountSherlock()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -165,3 +192,4 @@ const active = pages[cur]
 if (active?.classList.contains('m1-wuther')) mountWuther()
 if (active?.classList.contains('m1-oldman')) mountOldman()
 if (active?.classList.contains('m1-gone')) mountGone()
+if (active?.classList.contains('m2-sherlock')) mountSherlock()

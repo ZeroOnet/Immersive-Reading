@@ -24,6 +24,7 @@ export interface EffectHandle<P> {
   step?(): void // 暂停状态下前进一帧
   setDebug?(on: boolean): void // 显示采样点 / bounds 等辅助层
   snapshot?(): string | null // 导出当前帧 dataURL(PNG)
+  demoStep?(step: number): void // 演示门户：外部按钮分步触发内部状态（如 sherlock 三步反转）
 }
 
 export interface EffectModule<P = Record<string, unknown>> {
