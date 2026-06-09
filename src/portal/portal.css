@@ -1334,6 +1334,122 @@ h2 {
 .m4-veil-smoke.is-after .m4-fog-zh-a { opacity: 0; }
 .m4-veil-smoke.is-after .m4-fog-en-b { opacity: 1; }
 .m4-veil-smoke.is-after .m4-fog-zh-b { opacity: 0.6; }
+
+/* ============================================================
+   模块四 第三页 · 言下之意（傲慢与偏见，326:11430 / 326:11485）
+   大屏：风景背景 + 两态卡（信笺 ↔ 白纸便签）；与演示屏 prideSkin.peel 同步
+   ============================================================ */
+.m4-pride-bg {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #000;
+}
+.m4-pride-bg::before {
+  /* 风景图占左下 ~790×583 区域，opacity 60%；顶/底淡出与黑底融合 */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 43.51%; /* 416/956 */
+  width: 53.74%; /* 790/1470 */
+  height: 60.98%; /* 583/956 */
+  background: url("./assets/images/module4-p3-bg.png") center / cover no-repeat;
+  opacity: 0.6;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+}
+
+/* 真话卡（cardB）在下层始终可见；谎言贴纸（cardA）盖在上面，由 main.ts rAF 把 peel 推到 clip-path：
+   peel 0→1 时谎言从右往左被裁掉，逐步露出底下的真话。和 phone 的 peel 物理同步。 */
+.m4-pride-card {
+  position: absolute;
+  left: 7.36%;          /* (104.75/1470) */
+  top: 62.26%;          /* 595.18/956 */
+  width: 38.45%;        /* 565.128/1470 */
+  height: 8.89%;        /* 85.035/956 */
+  border-radius: 3.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.m4-pride-card-b { z-index: 3; } /* 真话在底 */
+.m4-pride-card-a { z-index: 4; } /* 谎言在上，clip-path 控制可见区域 */
+/* 信笺（甜言态，before）：暖米色光泽 + 内嵌暗影 */
+.m4-pride-card-a {
+  background: linear-gradient(180deg, #ede1d0 0%, #d6c2a2 60%, #c4b094 100%);
+  box-shadow:
+    inset 1.5px 1.5px 3px rgb(0 0 0 / 18%),
+    3px -2px 2px rgb(255 255 255 / 30%),
+    0 6px 18px rgb(0 0 0 / 35%);
+}
+/* 便签（真话态，after）：纯白 + 内嵌暗影；左侧 24.8px 米色侧条 */
+.m4-pride-card-b {
+  background: #fff;
+  box-shadow:
+    inset 1.5px 1.5px 7px rgb(0 0 0 / 35%),
+    3px -3px 2px rgb(255 255 255 / 40%),
+    0 6px 18px rgb(0 0 0 / 28%);
+}
+.m4-pride-tab {
+  /* 便签左侧米色侧条（24.8/565.128 ≈ 4.39% 宽，全高） */
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4.39%;
+  background: #e8d6c2;
+  box-shadow: -5px 0 3px rgb(0 0 0 / 24%);
+}
+
+.m4-pride-en {
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  color: #544e44;
+}
+.m4-pride-en-a {
+  font-family: "Source Serif Pro", Georgia, serif;
+  font-weight: 600;
+  font-size: 35px;
+  line-height: 54px;
+}
+.m4-pride-en-b {
+  /* Figma Hand 替代：Kalam 手写体 + 紧字距 */
+  font-family: "Kalam", cursive;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 54px;
+  letter-spacing: -0.35px;
+}
+.m4-pride-zh {
+  position: absolute;
+  z-index: 3;
+  left: 25.99%; /* 与 phone 同侧，居中于卡左边缘到一半之间 ≈ Figma 384.31/1470 */
+  top: 74.79%;  /* 715/956 */
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 38px;
+  line-height: 38px;
+  text-align: center;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 65%);
+}
+/* 默认态：谎言贴纸完整覆盖（clip 100%），真话底始终在；译文 a 显 60%、b 隐。mount 后 JS 按 peel 接管 */
+.m4-pride-card-a {
+  opacity: 1;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.m4-pride-card-b { opacity: 1; }
+.m4-pride-zh-a { opacity: 0.6; }
+.m4-pride-zh-b { opacity: 0; }
+/* phone 在右半中位 */
+.m4-pride-card-phone {
+  left: 67.27%; /* 988.83/1470 */
+}
 /* phone 卡片：右半中位 */
 .m4-veil-smoke-card {
   left: 67.27%; /* 988.83/1470 */

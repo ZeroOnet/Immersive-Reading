@@ -312,9 +312,12 @@ function mountVeilSmoke() {
     lastT = now
     for (const p of planes) p.rot += p.rotSpeed * dt
     ctx.clearRect(0, 0, SW, SH)
-    if (tex.complete && tex.naturalWidth > 0) {
+    // 与演示屏同步：state 0 满 alpha；state 1 零 alpha（粒子被"潜台词"取代）。线性渐隐
+    const s = veilSmokeHandle?.getParams?.()?.state
+    const visAlpha = 1 - Math.max(0, Math.min(1, typeof s === 'number' ? s : 0))
+    if (visAlpha > 0.005 && tex.complete && tex.naturalWidth > 0) {
       for (const p of planes) {
-        ctx.globalAlpha = p.alpha
+        ctx.globalAlpha = p.alpha * visAlpha
         ctx.save()
         ctx.translate(p.x, p.y)
         ctx.rotate(p.rot)
@@ -350,6 +353,46 @@ function mountVeilSmoke() {
     fogWrap.removeEventListener('click', onFogClick)
   }
 }
+// 模块四·言下之意第三页（m4-pride）：实跑 prideSkin。
+// 演示屏 prideSkin 自带「水平拖动揭开」交互（peel 0→1）。大屏每帧把 peel 推到 clip-path：
+// 谎言贴纸（cardA，在上）从右往左被裁掉，露出底层真话（cardB），物理进度跟 phone 1:1 同步。
+// 中文译文 a/b 双语用线性 opacity（最大 60%，与设计稿一致）。
+let prideHandle: (EffectHandle<unknown> & { getParams?(): { peel?: number } }) | null = null
+let prideRaf = 0
+function mountPride() {
+  if (prideHandle) return
+  const card = document.getElementById('m4pr-card')
+  const sect = document.querySelector<HTMLElement>('.m4-pride')
+  const cardA = sect?.querySelector<HTMLElement>('.m4-pride-card-a')
+  const zhA = sect?.querySelector<HTMLElement>('.m4-pride-zh-a')
+  const zhB = sect?.querySelector<HTMLElement>('.m4-pride-zh-b')
+  const pr = effect('prideSkin')
+  if (!card || !sect || !cardA || !zhA || !zhB || !pr) return
+  prideHandle = pr.mount(card, structuredClone(pr.defaultParams))
+  const sync = () => {
+    const p = prideHandle?.getParams?.()
+    const peel = Math.max(0, Math.min(1, typeof p?.peel === 'number' ? p.peel : 0))
+    const cut = ((1 - peel) * 100).toFixed(2) // 谎言贴纸保留的左侧宽度
+    cardA.style.clipPath = `polygon(0 0, ${cut}% 0, ${cut}% 100%, 0 100%)`
+    zhA.style.opacity = ((1 - peel) * 0.6).toFixed(3)
+    zhB.style.opacity = (peel * 0.6).toFixed(3)
+    prideRaf = requestAnimationFrame(sync)
+  }
+  prideRaf = requestAnimationFrame(sync)
+}
+function unmountPride() {
+  cancelAnimationFrame(prideRaf)
+  prideRaf = 0
+  prideHandle?.destroy()
+  prideHandle = null
+  // 让 CSS 默认重新接管
+  const sect = document.querySelector('.m4-pride')
+  sect?.querySelectorAll<HTMLElement>('.m4-pride-card-a, .m4-pride-zh-a, .m4-pride-zh-b').forEach((el) => {
+    el.style.removeProperty('opacity')
+    el.style.removeProperty('clip-path')
+  })
+}
+
 let veilSmokeCleanup: (() => void) | null = null
 function unmountVeilSmoke() {
   cancelAnimationFrame(veilSmokeRaf)
@@ -373,6 +416,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m3-fall')) unmountFall()
   if (prevPage.classList.contains('m4-undertone')) unmountUndertone()
   if (prevPage.classList.contains('m4-veil-smoke')) unmountVeilSmoke()
+  if (prevPage.classList.contains('m4-pride')) unmountPride()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
@@ -382,6 +426,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (nextPage.classList.contains('m3-fall')) mountFall()
   if (nextPage.classList.contains('m4-undertone')) mountUndertone()
   if (nextPage.classList.contains('m4-veil-smoke')) mountVeilSmoke()
+  if (nextPage.classList.contains('m4-pride')) mountPride()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -395,3 +440,4 @@ if (active?.classList.contains('m3-alice')) mountAlice()
 if (active?.classList.contains('m3-fall')) mountFall()
 if (active?.classList.contains('m4-undertone')) mountUndertone()
 if (active?.classList.contains('m4-veil-smoke')) mountVeilSmoke()
+if (active?.classList.contains('m4-pride')) mountPride()
