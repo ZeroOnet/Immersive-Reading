@@ -12,6 +12,7 @@ export interface AliceFallSkinParams {
   bounce: number // 触边弹性
   spring: number // 回正复位弹力
   spin: number // 翻滚强度
+  showButton: boolean // 显示底部「晃动屏幕·掉落」按钮（Lab 默认显示；门户里隐藏，由外部按钮驱动）
 }
 
 // Alice's Adventures in Wonderland（1865, Lewis Carroll）— 公有领域原文，开篇段落
@@ -29,6 +30,7 @@ export const defaultParams: AliceFallSkinParams = {
   bounce: 0.25,
   spring: 0.08,
   spin: 1,
+  showButton: true,
 }
 
 export const presets: Record<string, AliceFallSkinParams> = {
@@ -47,4 +49,5 @@ export const schema: ParamSchema<AliceFallSkinParams> = {
   bounce: { type: 'range', label: '弹性', min: 0, max: 0.7, step: 0.05 },
   spring: { type: 'range', label: '复位弹力', min: 0.02, max: 0.2, step: 0.01 },
   spin: { type: 'range', label: '翻滚', min: 0, max: 2, step: 0.1 },
+  showButton: { type: 'boolean', label: '底部按钮' },
 }

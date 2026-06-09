@@ -943,3 +943,110 @@ h2 {
   text-align: right;
   white-space: nowrap;
 }
+
+/* 模块三第二页 · 摇一摇按钮 */
+.m3-shake-btn {
+  position: absolute;
+  z-index: 3;
+  right: 63.6%;
+  top: 56.38%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding: 16px 26px;
+  border: 0;
+  border-radius: 16px;
+  background: #1f1f23;
+  cursor: pointer;
+}
+.m3-shake-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.m3-shake-title {
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 500;
+  font-size: 38px;
+  line-height: 46px;
+  letter-spacing: -0.38px;
+  color: var(--paper);
+  white-space: nowrap;
+}
+.m3-shake-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: url("./assets/images/module3-shake.png") center / contain no-repeat;
+}
+.m3-shake-sub {
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 34px;
+  letter-spacing: -0.28px;
+  color: var(--paper);
+  opacity: 0.4;
+  white-space: nowrap;
+}
+
+/* demo 屏左右摇摆（点击摇一摇时；keyframe 含 .m1-card 基础 transform + 横向抖动）*/
+@keyframes m3-card-shake {
+  0%,
+  100% {
+    transform: translateX(0) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  10% {
+    transform: translateX(-13px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  25% {
+    transform: translateX(11px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  40% {
+    transform: translateX(-9px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  55% {
+    transform: translateX(7px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  70% {
+    transform: translateX(-4px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+  85% {
+    transform: translateX(2px) translate(-50%, 0) scale(var(--phone-scale, 1));
+  }
+}
+.m1-card.m3-shaking {
+  animation: m3-card-shake 0.7s ease-in-out;
+}
+
+/* 四周散落小贴纸（Group 127）：固定 px 尺寸，比例定位，opacity 40 */
+.m3-stickers {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.m3-stk {
+  position: absolute;
+  opacity: 0.4;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.m3-stk01 { left: 42.65%; top: 8.13%; width: 33.12px; height: 30.24px; background-image: url("./assets/images/module3-stk01.png"); }
+.m3-stk02 { left: 53.82%; top: 0; width: 51.84px; height: 82.08px; background-image: url("./assets/images/module3-stk02.png"); }
+.m3-stk03 { left: 49.12%; top: 2.86%; width: 38.88px; height: 54.72px; background-image: url("./assets/images/module3-stk03.png"); }
+.m3-stk04 { left: 0; top: 79.08%; width: 43.2px; height: 96.48px; background-image: url("./assets/images/module3-stk04.png"); }
+.m3-stk05 { left: 0; top: 45.94%; width: 34.56px; height: 63.36px; background-image: url("./assets/images/module3-stk05.png"); }
+.m3-stk06 { left: 0; top: 65.07%; width: 47.52px; height: 77.76px; background-image: url("./assets/images/module3-stk06.png"); }
+.m3-stk07 { left: 0.39%; top: 31.78%; width: 27.36px; height: 31.68px; background-image: url("./assets/images/module3-stk07.png"); }
+.m3-stk08 { left: 0; top: 4.22%; width: 86.4px; height: 141.12px; background-image: url("./assets/images/module3-stk08.png"); }
+.m3-stk09 { left: 93.65%; top: 22.29%; width: 59.04px; height: 103.68px; background-image: url("./assets/images/module3-stk09.png"); }
+.m3-stk10 { left: 95.61%; top: 57.54%; width: 64.8px; height: 105.12px; background-image: url("./assets/images/module3-stk10.png"); }
+.m3-stk11 { left: 94.53%; top: 74.56%; width: 37.44px; height: 53.28px; background-image: url("./assets/images/module3-stk11.png"); }
+.m3-stk12 { left: 94.53%; top: 83.6%; width: 80.64px; height: 82.08px; background-image: url("./assets/images/module3-stk12.png"); }
+.m3-stk13 { left: 90.61%; top: 90.53%; width: 48.96px; height: 28.8px; background-image: url("./assets/images/module3-stk13.png"); }
+.m3-stk14 { left: 94.73%; top: 53.92%; width: 18.72px; height: 17.28px; background-image: url("./assets/images/module3-stk14.png"); }
+.m3-stk15 { left: 93.06%; top: 37.96%; width: 102.24px; height: 133.92px; background-image: url("./assets/images/module3-stk15.png"); }
+.m3-stk16 { left: 91.3%; top: 4.37%; width: 128.16px; height: 182.88px; background-image: url("./assets/images/module3-stk16.png"); }

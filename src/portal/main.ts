@@ -202,6 +202,33 @@ function unmountAlice() {
   aliceHandle = null
 }
 
+// 模块三·爱丽丝晃动掉落（m3-fall）：demo 卡片 → 实跑 aliceFallSkin；摇一摇按钮 → 掉落 + demo 屏左右摇摆
+let fallHandle: EffectHandle<unknown> | null = null
+function mountFall() {
+  if (fallHandle) return
+  const card = document.getElementById('m3fall-card')
+  const fk = effect('aliceFallSkin')
+  if (card && fk) {
+    const p = structuredClone(fk.defaultParams) as Record<string, unknown>
+    p.showButton = false // 门户里隐藏 demo 底部按钮，由摇一摇按钮驱动
+    fallHandle = fk.mount(card, p)
+  }
+}
+function unmountFall() {
+  fallHandle?.destroy()
+  fallHandle = null
+}
+// 摇一摇按钮：触发掉落(toggle) + demo 卡片左右摇摆
+document.querySelector<HTMLElement>('.m3-shake-btn')?.addEventListener('click', () => {
+  fallHandle?.demoStep?.(1)
+  const card = document.getElementById('m3fall-card')
+  if (card) {
+    card.classList.remove('m3-shaking')
+    void card.offsetWidth // 强制 reflow → 重启摇摆动画
+    card.classList.add('m3-shaking')
+  }
+})
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
@@ -209,12 +236,14 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m2-sherlock')) unmountSherlock()
   if (prevPage.classList.contains('m2-ring')) unmountRing()
   if (prevPage.classList.contains('m3-alice')) unmountAlice()
+  if (prevPage.classList.contains('m3-fall')) unmountFall()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
   if (nextPage.classList.contains('m2-sherlock')) mountSherlock()
   if (nextPage.classList.contains('m2-ring')) mountRing()
   if (nextPage.classList.contains('m3-alice')) mountAlice()
+  if (nextPage.classList.contains('m3-fall')) mountFall()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -225,3 +254,4 @@ if (active?.classList.contains('m1-gone')) mountGone()
 if (active?.classList.contains('m2-sherlock')) mountSherlock()
 if (active?.classList.contains('m2-ring')) mountRing()
 if (active?.classList.contains('m3-alice')) mountAlice()
+if (active?.classList.contains('m3-fall')) mountFall()

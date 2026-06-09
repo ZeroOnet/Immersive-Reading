@@ -154,11 +154,11 @@ export function mountAliceFallSkin(
   stage.appendChild(status)
 
 
-  // 晃动按钮
+  // 晃动按钮（门户里由外部「摇一摇」按钮驱动，故 showButton=false 时不显示）
   const btn = document.createElement('button')
   btn.style.cssText =
     'position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:8;padding:9px 16px;border:0;border-radius:999px;background:rgba(247,240,224,.92);color:#2a241a;font:600 13px ui-sans-serif;cursor:pointer;box-shadow:0 2px 10px #0006;'
-  root.appendChild(btn)
+  if (params.showButton) root.appendChild(btn)
 
   // 悬停的装饰 → Enter 复制其文件名
   let toastTimer = 0
@@ -238,15 +238,16 @@ export function mountAliceFallSkin(
       bodies.push({ el: objEls[i], hx: cx, hy: cy, hw: o.w / 2, hh: o.h / 2, x: cx, y: cy, vx: 0, vy: 0, rot: 0, vrot: 0 })
     })
     const sr = stage.getBoundingClientRect()
+    const total = sr.width / DW // 实际渲染缩放（含 stage scale 与祖先 transform:scale），换回设计坐标
     for (const b of textBodies) {
       b.el.style.transform = ''
       const r = b.el.getBoundingClientRect()
-      const dw = r.width / s
-      const dh = r.height / s
+      const dw = r.width / total
+      const dh = r.height / total
       b.hw = dw / 2
       b.hh = dh / 2
-      b.hx = (r.left - sr.left) / s + b.hw
-      b.hy = (r.top - sr.top) / s + b.hh
+      b.hx = (r.left - sr.left) / total + b.hw
+      b.hy = (r.top - sr.top) / total + b.hh
       b.x = b.hx
       b.y = b.hy
       bodies.push(b)
@@ -254,8 +255,8 @@ export function mountAliceFallSkin(
   }
 
   function measure() {
-    const r = container.getBoundingClientRect()
-    W = Math.max(1, r.width)
+    // 用 clientWidth（未缩放布局宽）：容器被祖先 transform:scale 时 getBoundingClientRect 会返回缩放后宽 → 双重缩放
+    W = Math.max(1, container.clientWidth)
     s = W / DW
     stage.style.transform = `scale(${s})`
     sheet.style.height = `${DH * s}px` // 缩放后的设计帧真实高度 → scroller 据此决定是否滚动
@@ -412,6 +413,9 @@ export function mountAliceFallSkin(
     reset() {
       fallen = false
       setBtnLabel()
+    },
+    demoStep() {
+      toggle() // 演示门户「摇一摇」按钮：等同摇晃设备 → 切换掉落/归位
     },
     getParams() {
       return { ...params }
