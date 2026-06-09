@@ -727,3 +727,96 @@ h2 {
   text-align: center;
   color: rgb(228 228 225 / 70%);
 }
+
+/* ============================================================
+   模块二 · 亲身参与 ENGAGEMENT（321:11086）：两本静态书卡 + 左右标签，无 effect
+   标题复用 .m1-title-en/.m1-title-cn
+   ============================================================ */
+.m2-bg {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: url("./assets/images/module2-bg.png") center 42% / cover no-repeat;
+}
+/* 顶部黑→透明渐变带（321:11094）*/
+.m2-topfade {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 200px;
+  background: linear-gradient(180deg, #000 31%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+.m2-num {
+  position: absolute;
+  z-index: 3;
+  left: 1.94%;
+  top: 17.49%;
+  width: 98.12px;
+  height: 90.2px;
+  background: url("./assets/images/module2-num.svg") center / contain no-repeat;
+}
+
+/* 两本书卡：设计静态图，固定尺寸 365×774，比例定位 */
+.m2-card {
+  position: absolute;
+  z-index: 2;
+  width: 365.144px;
+  height: 774.4px;
+  border-radius: 24.506px;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.m2-card-scarlet {
+  left: 24.15%;
+  top: 10.56%;
+  background-image: url("./assets/images/module2-scarlet.png");
+}
+.m2-card-rings {
+  left: 54.72%;
+  top: 18.99%;
+  background-image: url("./assets/images/module2-rings.png");
+}
+
+/* 左右标签 */
+.m2-label {
+  position: absolute;
+  z-index: 3;
+  top: 45.92%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 282px;
+}
+.m2-label-left {
+  left: 2.65%;
+  align-items: flex-start;
+  text-align: left;
+}
+.m2-label-right {
+  right: 2.79%;
+  align-items: flex-end;
+  text-align: right;
+}
+.m2-label-title {
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 500;
+  font-size: 49px;
+  line-height: 74px;
+  letter-spacing: -0.49px;
+  color: var(--paper);
+  white-space: nowrap;
+}
+.m2-label-sub {
+  margin: 0;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 34px;
+  line-height: 34px;
+  letter-spacing: -0.34px;
+  color: rgb(228 228 225 / 60%);
+}
