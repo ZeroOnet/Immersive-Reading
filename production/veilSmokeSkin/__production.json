@@ -1,0 +1,19 @@
+{
+  "effectId": "veilSmokeSkin",
+  "params": {
+    "titleEn": "The Painted Veil",
+    "titleZh": "面纱",
+    "body": "In the end, love is no longer a feeling but a choice made in the face of suffering. In a remote Chinese town racked by cholera, where the air is thick with fear and the stench of death, a doctor who once fled from marriage stays\nbehind to serve.",
+    "bodyColor": "#b3b0a6",
+    "phraseA": "“You know I adore you.”",
+    "phraseAZh": "（你知道我有多爱你）",
+    "phraseAColor": "#bb915a",
+    "phraseB": "“But not enough to risk\nanything.”",
+    "phraseBZh": "（但不足以冒任何风险）",
+    "phraseBColor": "#a4a4a4",
+    "state": 0,
+    "scrim": 0.35,
+    "timeColor": "#bbb09a"
+  },
+  "savedAt": "2026-06-09T12:35:10.709Z"
+}

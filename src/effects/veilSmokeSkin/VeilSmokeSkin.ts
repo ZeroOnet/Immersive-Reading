@@ -20,7 +20,9 @@ export function mountVeilSmokeSkin(
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;'
   container.appendChild(root)
 
-  // 背景：state A / B 各一段整屏视频，按 state 交叉淡化
+  // 背景：state A / B 各一段视频，按 state 交叉淡化。
+  // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 345:579 (A) / 345:621 (B)（x=-41 y=0 w=455 h=799）；溢出由 root overflow:hidden 裁掉
+  const BG_VIDEO_FRAME = { left: -41, top: 0, width: 455, height: 799 }
   function mkBg(src: string): HTMLVideoElement {
     const el = document.createElement('video')
     el.src = src
@@ -30,7 +32,8 @@ export function mountVeilSmokeSkin(
     el.setAttribute('playsinline', '')
     el.setAttribute('webkit-playsinline', '')
     el.style.cssText =
-      'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;z-index:0;transition:opacity .7s ease;'
+      `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+      'object-fit:cover;object-position:center;pointer-events:none;z-index:0;transition:opacity .7s ease;'
     return el
   }
   const bgA = mkBg(bgAVideo)
@@ -98,7 +101,7 @@ export function mountVeilSmokeSkin(
   col.appendChild(body)
 
   // 烟雾画布全屏：上方留出空间让 plane 自然淡出，避免硬切；生成区域仍只在底部 340px
-  const SMOKE_GEN_H = 340
+  const SMOKE_GEN_H = 85
   const smokeWrap = document.createElement('div')
   smokeWrap.style.cssText = 'position:absolute;inset:0;pointer-events:auto;cursor:pointer;z-index:3;'
   root.appendChild(smokeWrap)
@@ -232,7 +235,7 @@ export function mountVeilSmokeSkin(
     const startY = (h - total) / 2 + fs / 2
     lines.forEach((ln, i) => oc.fillText(ln, w / 2, startY + i * lh))
     const data = oc.getImageData(0, 0, off.width, off.height).data
-    const step = Math.max(2, Math.round(dp * 2))
+    const step = Math.max(1, Math.round(dp))
     const out: { x: number; y: number }[] = []
     for (let y = 0; y < off.height; y += step) {
       for (let x = 0; x < off.width; x += step) {
@@ -276,7 +279,7 @@ export function mountVeilSmokeSkin(
     fxCtx.fillStyle = col
     fxCtx.shadowColor = col
     fxCtx.shadowBlur = 3
-    for (const p of particles) fxCtx.fillRect(p.x, p.y, 2, 2)
+    for (const p of particles) fxCtx.fillRect(p.x, p.y, 1, 1)
     fxCtx.shadowBlur = 0
   }
   function tickParticles() {
