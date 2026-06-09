@@ -1,0 +1,20 @@
+{
+  "effectId": "prideSkin",
+  "params": {
+    "titleEn": "Pride and Prejudice",
+    "titleZh": "傲慢与偏见",
+    "body": "After a silence of several minutes, he came towards her in an agitated manner, and thus began:\n\n“In vain have I struggled. It will not do. My feelings will not be repressed. You must allow me to tell you how ardently I admire and love you.”\n\nElizabeth’s astonishment was beyond expression. She stared, coloured, doubted, and was silent.",
+    "bodyColor": "#585054",
+    "lieEn": "Ardently I admire and love you.",
+    "lieZh": "（我由衷地敬佩你、爱你）",
+    "truthEn": "I think you are beneath me.",
+    "truthZh": "（我觉得你配不上我）",
+    "peel": 0,
+    "stiffness": 32,
+    "damping": 7.5,
+    "releaseThreshold": 0.55,
+    "scrim": 0.2,
+    "timeColor": "#524e41"
+  },
+  "savedAt": "2026-06-09T06:04:56.176Z"
+}

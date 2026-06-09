@@ -26,6 +26,8 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
 
   // 背景：天空薄云缓慢漂移视频（首帧=尾帧无缝循环）+ 大气覆盖层（设计 58:3525），带声播放。
   // 浏览器禁止带声 autoplay → 被拒时降级静音播 + 首次交互（点击/触摸/按键）解除静音
+  // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 345:656（x=-44 y=0 w=500 h=888）；溢出由 root overflow:hidden 裁掉
+  const BG_VIDEO_FRAME = { left: -44, top: 0, width: 500, height: 888 }
   const bg = document.createElement('video')
   bg.src = bgVideo
   bg.autoplay = true
@@ -33,7 +35,9 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
   bg.playsInline = true
   bg.setAttribute('playsinline', '')
   bg.setAttribute('webkit-playsinline', '')
-  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:0;'
+  bg.style.cssText =
+    `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+    'object-fit:cover;pointer-events:none;z-index:0;'
   root.appendChild(bg)
   bg.muted = false
   bg.volume = 1
