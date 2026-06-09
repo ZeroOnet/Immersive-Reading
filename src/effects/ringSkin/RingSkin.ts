@@ -1,7 +1,6 @@
 import type { EffectHandle } from '../types'
 import type { RingSkinParams } from './params'
-import bgImg from './bg.png'
-import ringImg from './ring.png'
+import bgVideo from './bg.mp4'
 import titleLogo from './titleLogo.png'
 
 const DW = 375 // 设计帧宽（内容按此列宽固定排版）
@@ -17,11 +16,33 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#0a0705;touch-action:none;'
   container.appendChild(root)
 
-  // 背景（黑暗氛围图，object-cover 撑满）
-  const bg = document.createElement('img')
-  bg.src = bgImg
-  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:0;'
+  // 背景视频（图1→图2 单向，不循环），带声播放。麦克风检测到声音→play(带声)、无声音→pause；
+  // 进度(fill)由视频播放位置驱动（fill = currentTime/duration），与视频天然同步。
+  const bg = document.createElement('video')
+  bg.src = bgVideo
+  bg.loop = false
+  bg.muted = false
+  bg.playsInline = true
+  bg.preload = 'auto'
+  bg.setAttribute('playsinline', '')
+  bg.setAttribute('webkit-playsinline', '')
+  // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 345:743（x=-28 y=0 w=444 h=790）；溢出由 root overflow:hidden 裁掉
+  const BG_VIDEO_FRAME = { left: -28, top: 0, width: 444, height: 790 }
+  bg.style.cssText =
+    `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+    'object-fit:cover;pointer-events:none;z-index:0;'
   root.appendChild(bg)
+  // 视频进度与咒文进度(params.fill 0..1)同步：scrub 到对应帧
+  function syncVideo() {
+    if (isFinite(bg.duration) && bg.duration > 0) {
+      try {
+        bg.currentTime = Math.max(0, Math.min(1, params.fill)) * bg.duration
+      } catch {
+        /* seeking 中，忽略 */
+      }
+    }
+  }
+  bg.addEventListener('loadeddata', syncVideo) // 加载后定位到当前 fill（默认 fill=0 → 首帧图1）
 
   // 压暗渐变（顶/底略压暗，正文更清晰）
   const scrim = document.createElement('div')
@@ -39,11 +60,9 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   col.style.cssText = `position:absolute;left:50%;top:0;width:${DW}px;height:100%;transform:translateX(-50%);z-index:2;`
   root.appendChild(col)
 
-  // 底部至尊魔戒（图片占位；后续替换为跟随咒语进度的视频）。按住它念咒。
-  const ring = document.createElement('img')
-  ring.src = ringImg
-  ring.draggable = false
-  ring.style.cssText = 'position:absolute;left:50%;pointer-events:auto;cursor:pointer;touch-action:none;user-select:none;-webkit-user-drag:none;'
+  // 视频里戒指的大致位置：透明可点击热区（点它录音念咒）。位置取自 Figma 戒指对象（≈ left47 top623 281×200）
+  const ring = document.createElement('div')
+  ring.style.cssText = 'position:absolute;left:47px;top:623px;width:281px;height:200px;pointer-events:auto;cursor:pointer;touch-action:none;'
   col.appendChild(ring)
 
   // 顶部英文标识（设计 31:402，left24 top116 210×103）
@@ -100,7 +119,8 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   const quoteWrap = document.createElement('div')
   quoteWrap.style.cssText =
     "position:absolute;left:50%;width:328px;transform:translateX(-50%);text-align:center;" +
-    "font-family:'Cormorant',Georgia,serif;font-weight:500;font-size:30px;line-height:36px;"
+    "font-family:'Cormorant',Georgia,serif;font-weight:600;font-size:28px;line-height:34px;" +
+    "transition:top .4s ease,font-size .4s ease,line-height .4s ease;"
   col.appendChild(quoteWrap)
   let activeWords: HTMLElement[] = []
 
@@ -114,14 +134,18 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   let raf = 0
   let t = 0
   let timeScale = 1
-  let holding = false
+  // 录音念咒态 + 麦克风
+  let chanting = false
+  let micStream: MediaStream | null = null
+  let audioCtx: AudioContext | null = null
+  let analyser: AnalyserNode | null = null
+  let micBuf: Float32Array<ArrayBuffer> | null = null
+  const MIC_RMS_THRESHOLD = 0.025 // 麦克风 RMS 超过即判定"有声音"，推进进度
+  const SHOW_EDGE_SPARKS = false // 已去掉咒文激发的边缘火焰粒子
 
   // 火焰粒子（从激发文字的字形边缘沿笔画切线流动）
   interface Spark { x: number; y: number; tx: number; ty: number; speed: number; life: number; max: number; size: number }
   let sparks: Spark[] = []
-  // hint 文字飘散粒子（开始念咒时由文字字形采样而来）
-  interface Dust { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number }
-  let dust: Dust[] = []
   let hintDispersed = false
   let FXW = 0
   let FXH = 0
@@ -201,7 +225,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
     const hollow = document.createElement('p')
     hollow.textContent = params.quote
     hollow.style.cssText =
-      `margin:0;white-space:pre-line;color:rgba(${r},${g},${b},${params.hollowAlpha});text-shadow:0 0 3px rgba(255,197,142,.6);`
+      `margin:0;white-space:pre-line;color:rgba(${r},${g},${b},${params.hollowAlpha});`
     quoteWrap.appendChild(hollow)
 
     // 激发（active）：与未激发层同位叠放，逐词在原位点亮（覆盖未激发字）
@@ -215,7 +239,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
         const w = document.createElement('span')
         w.textContent = tok
         w.style.cssText =
-          `display:inline-block;opacity:0;color:${params.quoteColor};text-shadow:0 0 3px #FFC58E;will-change:opacity;`
+          `display:inline-block;opacity:0;color:rgba(${r},${g},${b},.84);text-shadow:0 0 3px rgba(255,197,142,.6);will-change:opacity;`
         ld.appendChild(w)
         activeWords.push(w)
       })
@@ -234,33 +258,10 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
       const p = Math.max(0, Math.min(1, a - i)) // 该词点亮度 0→1
       activeWords[i].style.opacity = p.toFixed(3)
     }
-    applyRingProgress()
   }
 
   function applyRing() {
-    // 注意：top 不在这里设置 —— 由 relayoutHint 按"咒语底 + ringGap"动态算
-    ring.style.width = `${320 * params.ringScale}px`
-    ring.style.height = 'auto'
-    ring.style.transform = 'translateX(-50%)'
-  }
-
-  // 指环动画"播放进度"由已激发咒语进度驱动（当前为图片占位 → 亮度/辉光随进度增强；
-  // 替换为 <video> 时改为 video.currentTime = params.fill * duration）
-  // 未开始念咒（fill=0 且没按住）时，高光在 0..1 之间呼吸往复，提示用户点击
-  function applyRingProgress() {
-    const fill = Math.max(0, Math.min(1, params.fill))
-    if (fill <= 0 && !holding) {
-      // 呼吸节律：完整一次 ~2.6s；k ∈ [0,1]
-      const k = 0.5 - 0.5 * Math.cos(t * 2.4)
-      const gl = 8 + 36 * k
-      const op = 0.12 + 0.66 * k
-      ring.style.filter = `brightness(${(0.78 + 0.5 * k).toFixed(2)}) drop-shadow(0 0 ${gl.toFixed(0)}px rgba(255,160,60,${op.toFixed(2)}))`
-      return
-    }
-    const pulse = 0.06 * Math.sin(t * 2)
-    const gl = 8 + 34 * fill
-    const op = 0.18 + 0.5 * fill + pulse
-    ring.style.filter = `brightness(${(0.82 + 0.5 * fill).toFixed(2)}) drop-shadow(0 0 ${gl.toFixed(0)}px rgba(255,160,60,${op.toFixed(2)}))`
+    /* 戒指现为透明点击热区，位置/尺寸固定（见创建处），不随 ringScale 调整 */
   }
 
   function applyText() {
@@ -275,12 +276,26 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   }
 
   // 整列垂直排版：正文 → +28 → hint(40h) → +28 → 咒语 → +ringGap → 指环
+  // 铭文两态（带 transition 动画）：
+  //   未激发(169:2260) 28/lh34，顶部=正文底 +28(hint间距)+40(hint高)+28
+  //   激发(169:2354)   30/lh40，顶部=正文底 +55（hint 消失，铭文上移放大）
+  function applyQuoteState() {
+    const bodyBottom = bodyP.offsetTop + bodyP.offsetHeight
+    if (hintDispersed) {
+      quoteWrap.style.fontSize = '30px'
+      quoteWrap.style.lineHeight = '40px'
+      quoteWrap.style.top = `${bodyBottom + 55}px`
+    } else {
+      quoteWrap.style.fontSize = '28px'
+      quoteWrap.style.lineHeight = '34px'
+      quoteWrap.style.top = `${bodyBottom + 28 + 40 + 28}px`
+    }
+  }
   function relayoutHint() {
+    // 咒语提示(hint)距正文底 28；铭文位置/字号按激发态切换（applyQuoteState）
     const bodyBottom = bodyP.offsetTop + bodyP.offsetHeight
     hintBox.style.top = `${bodyBottom + 28}px`
-    const quoteTop = bodyBottom + 28 + 40 + 28
-    quoteWrap.style.top = `${quoteTop}px`
-    ring.style.top = `${quoteTop + quoteWrap.offsetHeight + params.ringGap}px`
+    applyQuoteState()
   }
 
   function applyScrim() {
@@ -304,7 +319,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   // 从"正在点亮的词"的字形边缘沿笔画切线流动火焰粒子
   // 笔画切线 = 旋转 90° 的"朝外法线"(e.cx, e.cy) → (−cy, cx) 或 (cy, −cx)，随机正反向贴笔画跑
   function spawnSparks() {
-    if (!holding || params.fill >= 1) return
+    if (!SHOW_EDGE_SPARKS || params.fill >= 1) return
     const n = activeWords.length
     if (!n) return
     const a = params.fill * n
@@ -347,7 +362,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   }
   function renderSparks() {
     fxCtx.clearRect(0, 0, FXW, FXH)
-    if (!sparks.length && !dust.length) return
+    if (!sparks.length) return
     fxCtx.save()
     fxCtx.globalCompositeOperation = 'lighter'
     for (const s of sparks) {
@@ -363,99 +378,44 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
       fxCtx.arc(s.x, s.y, sz, 0, Math.PI * 2)
       fxCtx.fill()
     }
-    for (const d of dust) {
-      const k = 1 - d.life / d.max
-      const sz = d.size * (0.55 + k * 0.7)
-      const g = (150 + 70 * k) | 0
-      const al = k * k * 0.9
-      fxCtx.shadowColor = `rgba(255,170,80,${(al * 0.7).toFixed(3)})`
-      fxCtx.shadowBlur = 4 + 10 * k
-      fxCtx.fillStyle = `rgba(255,${g},${(90 * k) | 0},${al.toFixed(3)})`
-      fxCtx.beginPath()
-      fxCtx.arc(d.x, d.y, sz, 0, Math.PI * 2)
-      fxCtx.fill()
-    }
     fxCtx.restore()
   }
 
-  // hint「念出铭文…」按字形采样为粒子，向外飘散
-  function sampleHintDust() {
-    const r = hintText.getBoundingClientRect()
-    const cr = container.getBoundingClientRect()
-    const bw = Math.max(1, r.width)
-    const bh = Math.max(1, r.height)
-    const x0 = r.left - cr.left
-    const y0 = r.top - cr.top
-    const dp = Math.min(window.devicePixelRatio || 1, 2)
-    og.width = Math.ceil(bw * dp)
-    og.height = Math.ceil(bh * dp)
-    ogCtx.setTransform(dp, 0, 0, dp, 0, 0)
-    ogCtx.clearRect(0, 0, bw, bh)
-    ogCtx.fillStyle = '#fff'
-    ogCtx.textAlign = 'center'
-    ogCtx.textBaseline = 'middle'
-    ogCtx.font = "500 18px 'Source Han Serif CN','Songti SC',serif"
-    // letterSpacing 在新版浏览器支持；不支持时退化为无字距（采样略密一点，视觉影响小）
-    type CtxWithLS = CanvasRenderingContext2D & { letterSpacing?: string }
-    ;(ogCtx as CtxWithLS).letterSpacing = '1.08px'
-    ogCtx.fillText('念出铭文，唤醒魔戒之力', bw / 2, bh / 2)
-    const W2 = og.width
-    const H2 = og.height
-    const data = ogCtx.getImageData(0, 0, W2, H2).data
-    const step = Math.max(2, Math.round(dp * 2))
-    const cx = bw / 2
-    for (let y = 0; y < H2; y += step) {
-      for (let x = 0; x < W2; x += step) {
-        if (data[(y * W2 + x) * 4 + 3] <= 110) continue
-        const px = x / dp
-        const py = y / dp
-        // 越靠两侧、越靠下，初速度越大 → 整体往外炸开 + 略上浮
-        const sx = (px - cx) / Math.max(1, cx)
-        dust.push({
-          x: x0 + px,
-          y: y0 + py,
-          vx: sx * (18 + Math.random() * 22) + (Math.random() - 0.5) * 12,
-          vy: -(10 + Math.random() * 22) - py * 0.2,
-          life: 0,
-          max: 0.7 + Math.random() * 0.6,
-          size: 0.7 + Math.random() * 1.0,
-        })
-      }
-    }
-  }
-  function updateDust(dt: number) {
-    for (const d of dust) {
-      d.x += d.vx * dt
-      d.y += d.vy * dt
-      d.vx *= 1 - Math.min(1, dt * 1.2)
-      d.vy += 16 * dt // 轻微下沉（飘散末段）
-      d.life += dt
-    }
-    dust = dust.filter((d) => d.life < d.max)
-  }
   function disperseHint() {
     if (hintDispersed) return
     hintDispersed = true
-    sampleHintDust()
+    applyQuoteState() // 激发态：铭文上移并放大（带动画）
     hintBox.style.transition = 'opacity .35s ease-out'
     hintBox.style.opacity = '0'
   }
   function restoreHint() {
     if (!hintDispersed) return
     hintDispersed = false
+    applyQuoteState() // 回未激发态：铭文下移并缩小（带动画）
     hintBox.style.transition = 'opacity .5s ease-in'
     hintBox.style.opacity = '1'
   }
 
   function tick(dt: number) {
     t += dt
-    if (holding && params.fill < 1) {
-      params.fill = Math.min(1, params.fill + params.fillRate * dt) // 念咒累加并保存进度
+    if (chanting && params.fill < 1) {
+      // 有声音 → 播放背景视频(带声)；无声音 → 暂停。进度由视频播放位置驱动，与视频同步(0..1)
+      if (micRMS() > MIC_RMS_THRESHOLD) {
+        if (bg.paused) void bg.play().catch(() => {})
+      } else if (!bg.paused) {
+        bg.pause()
+      }
+      if (isFinite(bg.duration) && bg.duration > 0) {
+        params.fill = Math.min(1, bg.currentTime / bg.duration)
+      }
+      if (params.fill >= 1) {
+        bg.pause()
+        stopMic() // 念满 → 结束录音（之后可再点重触发）
+      }
     }
     renderQuote()
-    spawnSparks()
+    spawnSparks() // 已禁用(SHOW_EDGE_SPARKS=false)，保留以维持 fx 管线
     updateSparks(dt)
-    updateDust(dt)
   }
   function loop() {
     raf = requestAnimationFrame(loop)
@@ -464,24 +424,48 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
     renderSparks()
   }
 
-  // 按住指环念咒
-  const startChant = (e: Event) => {
-    e.preventDefault()
-    if (params.fill >= 1) return // 已完全激发 → 按住无反应
-    holding = true
-    disperseHint() // 开始念咒 → hint 文字以粒子飘散消失
+  // 点击戒指热区 → 录音念咒：检测到声音即推进咒文+视频进度；念满后可再点重触发
+  function micRMS(): number {
+    if (!analyser || !micBuf) return 0
+    analyser.getFloatTimeDomainData(micBuf)
+    let s = 0
+    for (let i = 0; i < micBuf.length; i++) s += micBuf[i] * micBuf[i]
+    return Math.sqrt(s / micBuf.length)
   }
-  const stopChant = () => {
-    if (!holding) return
-    holding = false
-    if (params.fill < 1) {
-      params.fill = 0 // 松手时进度未满 → 取消回填，下次从 0 开始
-      restoreHint() // 进度回滚 → hint 重新淡入，下次再念
+  function stopMic() {
+    chanting = false
+    micStream?.getTracks().forEach((tr) => tr.stop())
+    void audioCtx?.close()
+    micStream = null
+    audioCtx = null
+    analyser = null
+    micBuf = null
+  }
+  const startChant = async () => {
+    if (chanting) return
+    if (params.fill >= 1) {
+      // 已念满 → 重触发：从头开始
+      params.fill = 0
+      renderQuote()
+      syncVideo()
+      restoreHint()
+    }
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      audioCtx = new AC()
+      const srcNode = audioCtx.createMediaStreamSource(micStream)
+      analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 1024
+      micBuf = new Float32Array(analyser.fftSize)
+      srcNode.connect(analyser)
+      chanting = true
+      disperseHint() // 开始念咒 → hint 飘散
+    } catch {
+      /* 麦克风不可用/被拒：保持未激发态 */
     }
   }
-  ring.addEventListener('pointerdown', startChant)
-  window.addEventListener('pointerup', stopChant)
-  ring.addEventListener('pointercancel', stopChant)
+  ring.addEventListener('click', () => void startChant())
 
   applyText()
   applyScrim()
@@ -509,12 +493,12 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
       relayoutHint()
     },
     reset() {
+      stopMic()
       params.fill = 0 // 清空已激发进度
-      holding = false
       sparks = []
-      dust = []
       restoreHint() // hint 重新出现，等待下一次念咒
       renderQuote()
+      syncVideo() // 视频回到首帧
     },
     getParams() {
       return { ...params } // params.fill 即已保存的已激发咒语进度
@@ -522,9 +506,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
     destroy() {
       cancelAnimationFrame(raf)
       ro.disconnect()
-      ring.removeEventListener('pointerdown', startChant)
-      window.removeEventListener('pointerup', stopChant)
-      ring.removeEventListener('pointercancel', stopChant)
+      stopMic()
       root.remove()
     },
     setTimeScale(s) {

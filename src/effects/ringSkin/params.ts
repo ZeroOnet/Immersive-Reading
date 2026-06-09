@@ -21,7 +21,7 @@ export interface RingSkinParams {
 
 // 设计稿原文（31:377 / 31:452），原样保留
 const BODY =
-  'At its heart is Scarlett O’Hara— beautiful, headstrong, and unapologetically determined.  As war tears her world apart and everything she knew turns to ashes, she makes a'
+  'The fire bent around it, red and silent. The ring did not blacken, nor did it melt. When it was drawn out again, it lay cool and bright in his hand.'
 
 export const defaultParams: RingSkinParams = {
   title: '指环王',
@@ -32,7 +32,7 @@ export const defaultParams: RingSkinParams = {
   quoteColor: '#f3b377',
   timeColor: '#c79757',
   scrim: 0.35,
-  hollowAlpha: 0.12,
+  hollowAlpha: 0.28, // 设计 169:2260 未激发 rgba(243,179,119,0.28)
   fill: 0, // 念咒前未激发，念咒累加
   fillRate: 0.5,
   ringScale: 1,
