@@ -98,7 +98,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   function mkSceneVid(src: string): HTMLVideoElement {
     const v = document.createElement('video')
     v.src = src
-    v.loop = true
+    v.loop = false // 只播一遍；播完点击区域再次播放
     v.playsInline = true
     v.setAttribute('playsinline', '')
     v.setAttribute('webkit-playsinline', '')
@@ -113,6 +113,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
     letters: mkSceneVid(lettersRevealVideo),
     revenge: mkSceneVid(revengeRevealVideo),
   }
+  sceneVids.crime.playbackRate = 2 // 第一个视频（查看案发现场）2 倍速
   const TRIGGER_VIDEO: Record<number, 'letters' | 'revenge'> = { 0: 'letters', 1: 'revenge' }
   let ctaMode: 'label' | 'crime' | 'letters' | 'revenge' = 'label'
   function playSceneVid(v: HTMLVideoElement) {
@@ -151,9 +152,12 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   }
   cta.addEventListener('pointerup', releaseCTA)
   cta.addEventListener('pointerleave', releaseCTA)
-  // 点框：label↔crime 切换；正在放任何视频时点框 → 收起回文案
-  cta.addEventListener('click', () => {
-    setCtaContent(ctaMode === 'label' ? 'crime' : 'label')
+  // 点框：label → 打开并播放案发现场；正在显示某视频时点框 → 重播（播完点击区域再次播放）。
+  // stopPropagation 防止冒泡到 root 的 click→setExpanded(false)→收起视频（否则 letters/revenge 点了又被关掉）
+  cta.addEventListener('click', (e) => {
+    e.stopPropagation()
+    if (ctaMode === 'label') setCtaContent('crime')
+    else playSceneVid(sceneVids[ctaMode])
   })
 
   // ── 展开/收起状态 ──
