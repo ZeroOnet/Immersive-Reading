@@ -21,6 +21,9 @@ export function mountWutheringSkin(
   root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#0a0d0f;'
   container.appendChild(root)
 
+  // 背景视频相对屏幕(375×794)的位置/尺寸，取自 Figma node 99:63（x=0 y=-1 w=449 h=799）：
+  //   左对齐、顶部上溢 1px、右溢 74、底溢 4；溢出屏幕部分由 root overflow:hidden 裁掉。
+  const BG_VIDEO_FRAME = { left: 0, top: -1, width: 449, height: 799 }
   // 背景视频（替代之前的 bg1/bg2 双图层）
   const bgVid = document.createElement('video')
   bgVid.src = bgVideo
@@ -29,7 +32,9 @@ export function mountWutheringSkin(
   bgVid.playsInline = true
   bgVid.setAttribute('playsinline', '')
   bgVid.setAttribute('webkit-playsinline', '')
-  bgVid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;'
+  bgVid.style.cssText =
+    `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+    'object-fit:cover;pointer-events:none;' // scaleAspectFill；frame 取自 Figma node 99:63
   root.appendChild(bgVid)
   // 自动播放策略：浏览器禁止带声音的视频自动播放。
   // 先试带声播 → 被拒时降级静音播 + 注册首次点击解除静音
@@ -185,7 +190,7 @@ export function mountWutheringSkin(
     }
     const blurPx = swayI * params.blur
     inner.style.filter = blurPx > 0.05 ? `blur(${blurPx.toFixed(2)}px)` : 'none'
-    hidden.style.opacity = calmActive ? '1' : '0'
+    // 点 wind 不再弹出底部隐藏台词（仅保留「风停」效果）；hidden 始终隐藏
   }
 
   function loop() {
