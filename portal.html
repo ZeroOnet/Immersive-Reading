@@ -15,7 +15,7 @@
          视口不滚动，滚动手势整页 crossfade 替换内容 -->
     <div id="portal-viewport">
         <!-- ============ 首屏 Hero ============ -->
-        <section class="page hero active" aria-label="2026扇贝黑客松大赛首屏">
+        <section class="page fill hero active" aria-label="2026扇贝黑客松大赛首屏">
           <h1 class="english-title">INTERACTIVE STORYTELLING</h1>
 
           <div class="book-stack" aria-hidden="true">
@@ -49,7 +49,7 @@
         </section>
 
         <!-- ============ 模块一 Module 1 · 置身其中（呼啸山庄）============ -->
-        <section class="page module1" aria-label="模块一 置身其中">
+        <section class="page fill module1 m1-wuther" aria-label="模块一 置身其中（呼啸山庄）">
           <!-- 背景：设计图自带背景图（同一模块内固定相同）-->
           <div class="m1-bg"></div>
           <div class="m1-bg-block"></div>
@@ -78,8 +78,41 @@
           </p>
         </section>
 
+        <!-- ============ 模块一 第二页 · 老人与海（同模块同背景）============ -->
+        <section class="page fill module1 m1-oldman" aria-label="模块一 置身其中（老人与海）">
+          <!-- 背景：同模块统一背景图 -->
+          <div class="m1-bg"></div>
+          <div class="m1-bg-block"></div>
+          <!-- 同款粒子：oldMan 自带雨 → precipitation 透明全屏雨 -->
+          <div class="m1b-rain" id="m1b-rain"></div>
+
+          <div class="m1-num"></div>
+          <div class="m1-copy">
+            <p>把文字描绘的世界</p>
+            <p>变成用户正在进入的精神领地</p>
+          </div>
+
+          <h2 class="m1-title-en">ATMOSPHERE</h2>
+          <p class="m1-title-cn">置身其中</p>
+
+          <!-- 书卡：实跑 oldManSkin -->
+          <div class="m1-card" id="m1b-card"></div>
+
+          <p class="m1-quote m1b-quote-en1">“Now is no time to think of</p>
+          <p class="m1-quote m1b-quote-en2">what you do not have…”</p>
+          <p class="m1-quote m1b-quote-en3">“A man can be destroyed
+but not defeated.”</p>
+          <p class="m1-quote m1b-quote-cn1">现在不是去想自己缺什么的时候..</p>
+          <p class="m1-quote m1b-quote-cn2">一个人可以被毁灭，但不能被打败。</p>
+
+          <p class="m1-cite">
+            <span>《老人与海》</span><br />
+            <span class="m1-cite-en">The Old Man and the Sea</span><span>, 1952</span>
+          </p>
+        </section>
+
         <!-- ============ 尾屏 Ending ============ -->
-        <section class="page ending" aria-label="结尾展示屏">
+        <section class="page poster ending" aria-label="结尾展示屏">
           <div class="ending-frame">
             <h1 class="ending-title">
               <span>INTERACTIVE </span>
@@ -118,7 +151,7 @@
         </section>
 
         <!-- ============ 横排屏 Row ============ -->
-        <section class="page rows" aria-label="横排展示屏">
+        <section class="page poster rows" aria-label="横排展示屏">
           <div class="row-strip">
             <div class="row-card row-card-w147 row-wuthering"></div>
             <div class="row-card row-card-w148 row-old-man"></div>

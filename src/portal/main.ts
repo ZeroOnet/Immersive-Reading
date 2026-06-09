@@ -11,8 +11,14 @@ const STAGE_W = 1470
 const viewport = document.getElementById('portal-viewport')!
 const pages = Array.from(viewport.querySelectorAll<HTMLElement>('.page'))
 
+// .fill 页用 CSS 铺满窗口(100vw×100vh)，无需 transform；只有 .poster 页按窗口等比缩放居中
 function fit() {
+  // 演示真机：原生 375×794，顶部锚定 18.72%(设计位置)，底部受窗口约束 → 高度不足时从顶部等比压缩
+  // （只缩不放大）。可用高度 = 窗口高 ×(1-0.1872) - 16px 底部留白。
+  const phoneScale = Math.min(1, (window.innerHeight * (1 - 0.1872) - 16) / 794)
+  document.documentElement.style.setProperty('--phone-scale', phoneScale.toFixed(4))
   for (const p of pages) {
+    if (!p.classList.contains('poster')) continue
     const s = Math.min(window.innerWidth / STAGE_W, window.innerHeight / p.offsetHeight)
     p.style.transform = `translate(-50%, -50%) scale(${s})`
   }
@@ -82,25 +88,57 @@ window.addEventListener(
 
 // ============================================================
 // 各页的 product 挂载：进入该页激活态才挂载实跑 effect，离开即销毁
-//   模块一 · 置身其中（呼啸山庄）：书卡占位 → 实跑 wutheringSkin（带声、带吹字交互）
 //   背景用设计图，不在此挂载。
 // ============================================================
-const wuthering = effects.find((e) => e.id === 'wutheringSkin') as EffectModule<unknown> | undefined
-const m1Card = document.getElementById('m1-card')
-let m1Handle: EffectHandle<unknown> | null = null
-function mountM1() {
-  if (m1Handle || !wuthering || !m1Card) return
-  m1Handle = wuthering.mount(m1Card, structuredClone(wuthering.defaultParams))
+const byId = new Map(effects.map((e) => [e.id, e]))
+function effect(id: string) {
+  return byId.get(id) as EffectModule<unknown> | undefined
 }
-function unmountM1() {
-  m1Handle?.destroy()
-  m1Handle = null
+
+// 模块一·呼啸山庄（m1-wuther）：书卡 → 实跑 wutheringSkin（无粒子）
+let wutherHandle: EffectHandle<unknown> | null = null
+function mountWuther() {
+  if (wutherHandle) return
+  const card = document.getElementById('m1-card')
+  const m = effect('wutheringSkin')
+  if (card && m) wutherHandle = m.mount(card, structuredClone(m.defaultParams))
+}
+function unmountWuther() {
+  wutherHandle?.destroy()
+  wutherHandle = null
+}
+
+// 模块一·老人与海（m1-oldman）：书卡 → 实跑 oldManSkin；整屏「同款雨」→ precipitation(透明)
+let oldmanHandle: EffectHandle<unknown> | null = null
+let rainHandle: EffectHandle<unknown> | null = null
+function mountOldman() {
+  if (oldmanHandle) return
+  const card = document.getElementById('m1b-card')
+  const om = effect('oldManSkin')
+  if (card && om) oldmanHandle = om.mount(card, structuredClone(om.defaultParams))
+  const rainBox = document.getElementById('m1b-rain')
+  const pr = effect('precipitation')
+  if (rainBox && pr) {
+    rainHandle = pr.mount(rainBox, structuredClone(pr.defaultParams))
+    const cv = rainBox.querySelector('canvas')
+    if (cv) cv.style.background = 'transparent' // 雨原语自带深蓝底，叠加层需透明
+  }
+}
+function unmountOldman() {
+  oldmanHandle?.destroy()
+  oldmanHandle = null
+  rainHandle?.destroy()
+  rainHandle = null
 }
 
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
-  if (nextPage.classList.contains('module1')) mountM1()
-  if (prevPage.classList.contains('module1')) unmountM1()
+  if (prevPage.classList.contains('m1-wuther')) unmountWuther()
+  if (prevPage.classList.contains('m1-oldman')) unmountOldman()
+  if (nextPage.classList.contains('m1-wuther')) mountWuther()
+  if (nextPage.classList.contains('m1-oldman')) mountOldman()
 }
 
-// 首屏即激活页若是模块一则挂载（一般是 hero，不挂）
-if (pages[cur]?.classList.contains('module1')) mountM1()
+// 首屏激活页兜底（一般是 hero，不挂）
+const active = pages[cur]
+if (active?.classList.contains('m1-wuther')) mountWuther()
+if (active?.classList.contains('m1-oldman')) mountOldman()
