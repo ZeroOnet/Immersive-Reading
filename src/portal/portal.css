@@ -869,3 +869,23 @@ h2 {
   opacity: 0.4;
   white-space: nowrap;
 }
+
+/* 模块二第三页 · 指环王 demo 卡片居中偏右(57.6%)，覆盖 .m1-card 的 left；提示文字 */
+.m2-ring-card {
+  left: 57.6%;
+}
+.m2-ring-hint {
+  position: absolute;
+  z-index: 3;
+  right: 57.6%;
+  bottom: 6.17%;
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 42px;
+  letter-spacing: -0.3px;
+  color: rgb(228 228 225 / 80%);
+  text-align: right;
+  white-space: nowrap;
+}

@@ -176,15 +176,30 @@ document.querySelectorAll<HTMLElement>('.m2-step').forEach((btn) => {
   })
 })
 
+// 模块二·指环王（m2-ring）：demo 卡片 → 实跑 ringSkin（点指环录音念咒）
+let ringHandle: EffectHandle<unknown> | null = null
+function mountRing() {
+  if (ringHandle) return
+  const card = document.getElementById('m2ring-card')
+  const rk = effect('ringSkin')
+  if (card && rk) ringHandle = rk.mount(card, structuredClone(rk.defaultParams))
+}
+function unmountRing() {
+  ringHandle?.destroy()
+  ringHandle = null
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
   if (prevPage.classList.contains('m1-gone')) unmountGone()
   if (prevPage.classList.contains('m2-sherlock')) unmountSherlock()
+  if (prevPage.classList.contains('m2-ring')) unmountRing()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
   if (nextPage.classList.contains('m2-sherlock')) mountSherlock()
+  if (nextPage.classList.contains('m2-ring')) mountRing()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -193,3 +208,4 @@ if (active?.classList.contains('m1-wuther')) mountWuther()
 if (active?.classList.contains('m1-oldman')) mountOldman()
 if (active?.classList.contains('m1-gone')) mountGone()
 if (active?.classList.contains('m2-sherlock')) mountSherlock()
+if (active?.classList.contains('m2-ring')) mountRing()
