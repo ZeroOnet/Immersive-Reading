@@ -276,6 +276,88 @@ function mountVeilSmoke() {
 
   veilSmokeHandle = vsk.mount(card, structuredClone(vsk.defaultParams))
   sect.classList.remove('is-after')
+  sect.classList.remove('is-particle')
+
+  // ── 大屏 Kalam 台词粒子层 ─────────────────────────────────────────────
+  // 默认 HTML 文本（轻量）；state 处于转换中间态时切到粒子 canvas（重，但仅 ~1s）；
+  // 落定后回 HTML。canvas/HTML 之间用 opacity crossfade。
+  // 粒度比 phone（step=dp、dot=1×1）粗一倍：step=dp*2、dot=2×2 → 粒子数 ~1/4
+  const textCanvas = document.createElement('canvas')
+  textCanvas.className = 'm4-fog-text-canvas'
+  const fogTextEl = sect.querySelector<HTMLElement>('.m4-fog-text')!
+  fogTextEl.appendChild(textCanvas)
+  const tctx = textCanvas.getContext('2d')!
+  interface TP { x: number; y: number; ax: number; ay: number; bx: number; by: number }
+  let textParticles: TP[] = []
+  let TCW = 0
+  let TCH = 0
+  function sizeTextCanvas() {
+    const r = textCanvas.getBoundingClientRect()
+    TCW = Math.max(1, r.width)
+    TCH = Math.max(1, r.height)
+    const dp = Math.min(window.devicePixelRatio || 1, 2)
+    textCanvas.width = Math.floor(TCW * dp)
+    textCanvas.height = Math.floor(TCH * dp)
+    tctx.setTransform(dp, 0, 0, dp, 0, 0)
+  }
+  // 把 text 渲到离屏 canvas，按 alpha 取点。topRel = 文字中心相对画布高度的比例
+  function sampleText(text: string, fontPx: number, lineH: number, topRel: number): { x: number; y: number }[] {
+    const lines = text.split('\n')
+    const dp = Math.min(window.devicePixelRatio || 1, 2)
+    const off = document.createElement('canvas')
+    off.width = Math.ceil(TCW * dp)
+    off.height = Math.ceil(TCH * dp)
+    const oc = off.getContext('2d')!
+    oc.setTransform(dp, 0, 0, dp, 0, 0)
+    oc.fillStyle = '#fff'
+    oc.font = `400 ${fontPx}px Kalam, cursive`
+    oc.textAlign = 'center'
+    oc.textBaseline = 'middle'
+    const startY = topRel * TCH + fontPx / 2
+    lines.forEach((ln, i) => oc.fillText(ln, TCW / 2, startY + i * lineH))
+    const data = oc.getImageData(0, 0, off.width, off.height).data
+    const step = Math.max(2, Math.round(dp * 2))
+    const out: { x: number; y: number }[] = []
+    for (let y = 0; y < off.height; y += step) {
+      for (let x = 0; x < off.width; x += step) {
+        if (data[(y * off.width + x) * 4 + 3] > 120) out.push({ x: x / dp, y: y / dp })
+      }
+    }
+    return out
+  }
+  function buildTextParticles() {
+    sizeTextCanvas()
+    // 与 CSS 的 .m4-fog-en-a / .m4-fog-en-b 位置 / 字号对齐
+    const aPts = sampleText('“You know I adore you.”', 56, 60, 0.2464)
+    const bPts = sampleText('“But not enough to risk\nanything.”', 56, 60, 0.1819)
+    const N = Math.max(aPts.length, bPts.length)
+    textParticles = []
+    for (let i = 0; i < N; i++) {
+      const a = aPts[i % aPts.length]
+      const b = bPts[i % bPts.length]
+      textParticles.push({ x: a.x, y: a.y, ax: a.x, ay: a.y, bx: b.x, by: b.y })
+    }
+  }
+  function drawTextParticles(s: number) {
+    tctx.clearRect(0, 0, TCW, TCH)
+    // A → B 颜色插值（#bb915a → #a4a4a4）
+    const r = Math.round(0xbb + (0xa4 - 0xbb) * s)
+    const g = Math.round(0x91 + (0xa4 - 0x91) * s)
+    const b = Math.round(0x5a + (0xa4 - 0x5a) * s)
+    const col = `rgb(${r},${g},${b})`
+    tctx.fillStyle = col
+    tctx.shadowColor = col
+    tctx.shadowBlur = 3
+    for (const p of textParticles) {
+      p.x = p.ax + (p.bx - p.ax) * s
+      p.y = p.ay + (p.by - p.ay) * s
+      tctx.fillRect(p.x, p.y, 2, 2)
+    }
+    tctx.shadowBlur = 0
+  }
+  // 字体加载完先采一遍兜底（防 Kalam 未就绪时落到 cursive 默认，位置偏）
+  ;(document.fonts?.ready ?? Promise.resolve()).then(() => buildTextParticles())
+  let inTextTransition = false
 
   // 大屏迷雾粒子：N 个 smoke.png 面片随机位置/尺寸/角度，每帧自转 → 翻滚烟雾
   const ctx = canvas.getContext('2d')!
@@ -338,11 +420,21 @@ function mountVeilSmoke() {
   const onFogClick = () => veilSmokeHandle?.demoStep?.(1)
   fogWrap.addEventListener('click', onFogClick)
 
-  // rAF 同步 state → 大屏 .is-after（>0.5 切到 B 台词）
+  // rAF 同步 state → 大屏 .is-after（>0.5 切到 B 台词），并在转换中间态 (0.05~0.95) 切到粒子
   const sync = () => {
     const p = veilSmokeHandle?.getParams?.()
     const s = typeof p?.state === 'number' ? p.state : 0
     sect.classList.toggle('is-after', s > 0.5)
+    const inT = s > 0.05 && s < 0.95
+    if (inT && !inTextTransition) {
+      buildTextParticles() // 进入转换：重采（兜底 canvas 尺寸 / 字体可能变了）
+      sect.classList.add('is-particle')
+      inTextTransition = true
+    } else if (!inT && inTextTransition) {
+      sect.classList.remove('is-particle')
+      inTextTransition = false
+    }
+    if (inTextTransition) drawTextParticles(s)
     veilSmokeRaf = requestAnimationFrame(sync)
   }
   veilSmokeRaf = requestAnimationFrame(sync)
@@ -351,6 +443,7 @@ function mountVeilSmoke() {
   veilSmokeCleanup = () => {
     ro.disconnect()
     fogWrap.removeEventListener('click', onFogClick)
+    textCanvas.remove()
   }
 }
 // 模块四·言下之意第三页（m4-pride）：实跑 prideSkin。
@@ -403,7 +496,9 @@ function unmountVeilSmoke() {
   veilSmokeCleanup = null
   veilSmokeHandle?.destroy()
   veilSmokeHandle = null
-  document.querySelector('.m4-veil-smoke')?.classList.remove('is-after')
+  const sect = document.querySelector('.m4-veil-smoke')
+  sect?.classList.remove('is-after')
+  sect?.classList.remove('is-particle')
 }
 
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {

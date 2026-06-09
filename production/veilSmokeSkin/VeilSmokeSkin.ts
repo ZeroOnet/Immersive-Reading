@@ -101,7 +101,7 @@ export function mountVeilSmokeSkin(
   col.appendChild(body)
 
   // 烟雾画布全屏：上方留出空间让 plane 自然淡出，避免硬切；生成区域仍只在底部 340px
-  const SMOKE_GEN_H = 85
+  const SMOKE_GEN_H = 42
   const smokeWrap = document.createElement('div')
   smokeWrap.style.cssText = 'position:absolute;inset:0;pointer-events:auto;cursor:pointer;z-index:3;'
   root.appendChild(smokeWrap)
@@ -168,10 +168,25 @@ export function mountVeilSmokeSkin(
   }
 
   // Kalam 台词粒子画布（z:4，在烟雾之上但不挡点击）
+  // 性能策略：仅在 state 转换中（0.05~0.95）绘制粒子；落定态用下面的 HTML 文本兜底
   const fxCanvas = document.createElement('canvas')
   fxCanvas.style.cssText = 'position:absolute;left:0;right:0;top:580px;height:90px;width:100%;pointer-events:none;z-index:4;'
   col.appendChild(fxCanvas)
   const fxCtx = fxCanvas.getContext('2d')!
+
+  // HTML 文本（落定态可见，转换中 opacity 0 让位给粒子；A/B 同位置不同字号）
+  const phraseAEl = document.createElement('p')
+  phraseAEl.style.cssText =
+    "position:absolute;left:0;right:0;top:580px;height:90px;margin:0;display:flex;align-items:center;justify-content:center;" +
+    "font-family:'Kalam',cursive;font-weight:400;font-size:31px;line-height:40px;text-align:center;white-space:pre-wrap;" +
+    'pointer-events:none;z-index:4;opacity:1;transition:opacity .25s ease;'
+  col.appendChild(phraseAEl)
+  const phraseBEl = document.createElement('p')
+  phraseBEl.style.cssText =
+    "position:absolute;left:0;right:0;top:580px;height:90px;margin:0;display:flex;align-items:center;justify-content:center;" +
+    "font-family:'Kalam',cursive;font-weight:400;font-size:30px;line-height:36px;text-align:center;white-space:pre-wrap;" +
+    'pointer-events:none;z-index:4;opacity:0;transition:opacity .25s ease;'
+  col.appendChild(phraseBEl)
 
   // 译文（DOM，淡入淡出 A↔B）
   const trA = document.createElement('p')
@@ -235,7 +250,8 @@ export function mountVeilSmokeSkin(
     const startY = (h - total) / 2 + fs / 2
     lines.forEach((ln, i) => oc.fillText(ln, w / 2, startY + i * lh))
     const data = oc.getImageData(0, 0, off.width, off.height).data
-    const step = Math.max(1, Math.round(dp))
+    // 粒度比之前粗一倍：step=dp*2、绘制点 2×2（粒子总数 ~1/4，性能更好）
+    const step = Math.max(2, Math.round(dp * 2))
     const out: { x: number; y: number }[] = []
     for (let y = 0; y < off.height; y += step) {
       for (let x = 0; x < off.width; x += step) {
@@ -272,14 +288,23 @@ export function mountVeilSmokeSkin(
     return `rgba(${Math.round(ar + (br - ar) * t)},${Math.round(ag + (bg - ag) * t)},${Math.round(ab + (bb - ab) * t)},1)`
   }
 
+  // 'a' / 'b' = 落定（HTML 文本）；'p' = 转换中（粒子）。缓存避免每帧重写 inline style
+  let phraseMode: 'a' | 'b' | 'p' = 'a'
   function drawParticles() {
     const s = Math.max(0, Math.min(1, params.state))
+    const mode: 'a' | 'b' | 'p' = s > 0.05 && s < 0.95 ? 'p' : s < 0.5 ? 'a' : 'b'
+    if (mode !== phraseMode) {
+      phraseAEl.style.opacity = mode === 'a' ? '1' : '0'
+      phraseBEl.style.opacity = mode === 'b' ? '1' : '0'
+      phraseMode = mode
+    }
     fxCtx.clearRect(0, 0, CW, CH)
+    if (mode !== 'p') return // 落定态：不绘粒子，让 HTML 文本兜底
     const col = lerpColor(params.phraseAColor, params.phraseBColor, s)
     fxCtx.fillStyle = col
     fxCtx.shadowColor = col
     fxCtx.shadowBlur = 3
-    for (const p of particles) fxCtx.fillRect(p.x, p.y, 1, 1)
+    for (const p of particles) fxCtx.fillRect(p.x, p.y, 2, 2)
     fxCtx.shadowBlur = 0
   }
   function tickParticles() {
@@ -366,6 +391,10 @@ export function mountVeilSmokeSkin(
     body.style.color = params.bodyColor
     trA.textContent = params.phraseAZh
     trB.textContent = params.phraseBZh
+    phraseAEl.textContent = params.phraseA
+    phraseAEl.style.color = params.phraseAColor
+    phraseBEl.textContent = params.phraseB
+    phraseBEl.style.color = params.phraseBColor
   }
   function applyScrim() {
     const s = params.scrim

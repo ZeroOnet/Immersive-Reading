@@ -1334,6 +1334,23 @@ h2 {
 .m4-veil-smoke.is-after .m4-fog-zh-a { opacity: 0; }
 .m4-veil-smoke.is-after .m4-fog-en-b { opacity: 1; }
 .m4-veil-smoke.is-after .m4-fog-zh-b { opacity: 0.6; }
+/* 转换中：HTML 文字隐藏，让位给文字粒子 canvas（main.ts 控制 .is-particle） */
+.m4-veil-smoke.is-particle .m4-fog-en-a,
+.m4-veil-smoke.is-particle .m4-fog-en-b {
+  opacity: 0;
+}
+.m4-fog-text-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.m4-veil-smoke.is-particle .m4-fog-text-canvas {
+  opacity: 1;
+}
 
 /* ============================================================
    模块四 第三页 · 言下之意（傲慢与偏见，326:11430 / 326:11485）
