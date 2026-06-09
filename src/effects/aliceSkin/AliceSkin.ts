@@ -12,13 +12,19 @@ import heartImg from './heart.png'
 import diamondImg from './diamond.png'
 
 interface Word {
-  el: HTMLElement
+  el: HTMLElement // 外层 span：做让位 dodge（translate+rotate）
+  inner: HTMLElement // 内层 span：做独立无序抖动（不污染外层 rect 几何、不被 fast-path 清掉）
   furniture: boolean
   seed: number
   dispMag: number // 沿逃离方向的当前位移量（px）
   escUx: number // 锁定的逃离方向单位向量 x（0,0 = 未进入让位）
   escUy: number
   rot: number // 当前倾斜角（度）
+  // —— 无序抖动（随机数量的词在抖、幅度随机）——
+  jAmp: number // 当前抖动幅度（px，eased）
+  jTarget: number // 目标幅度（0=不抖；一次 burst 内为随机值）
+  jEnd: number // 本次 burst 结束时刻（t）
+  jNext: number // 下次"是否开抖"决策时刻（t）
 }
 
 // 《爱丽丝梦游仙境》阅读页皮肤（Figma 14:765）：Wonderland 静态背景 + 艺术字标题；
@@ -180,6 +186,16 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
   const ROT_EASE = 0.18 // 旋转 ease 系数
   const ROT_GAIN = 0.6 // 每 px 位移对应的倾斜量（封顶前）
   const ROT_MAX = 20 // 让位时单词最大倾斜角（度）
+  // —— 无序抖动：随机一批词在抖、幅度随机、各自错峰 ——
+  const JITTER_CHANCE = 0.5 // 每次决策时开始一段抖动的概率
+  const JITTER_AMP_MIN = 1.2 // 抖动幅度随机范围（px）
+  const JITTER_AMP_MAX = 5.0
+  const JITTER_DUR_MIN = 0.4 // 单段抖动持续（秒）
+  const JITTER_DUR_MAX = 1.6
+  const JITTER_GAP_MIN = 0.5 // 两次决策间隔（秒，随机 → 无序）
+  const JITTER_GAP_MAX = 2.5
+  const JITTER_EASE = 0.12 // 幅度淡入淡出
+  const JF1 = 31, JF2 = 47, JF3 = 37, JF4 = 53 // 抖动频率（高频不同步 → 无序抖感）
   let lastProjAng = 0 // 飞行物当前行进角（用于其旋转后 AABB 膨胀）
 
   function measure() {
@@ -200,10 +216,14 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
         continue
       }
       const sp = document.createElement('span')
-      sp.textContent = tok
       sp.style.display = 'inline-block'
       // 绕中心旋转：让位时词倾斜、且旋转不移动包围盒中心（让位零重叠几何成立的前提）
       sp.style.transformOrigin = 'center center'
+      // 内层：承载文字、独立做无序抖动（外层 rect 不含其 transform → 不污染 dodge 几何）
+      const inner = document.createElement('span')
+      inner.textContent = tok
+      inner.style.display = 'inline-block'
+      sp.appendChild(inner)
       bodyP.appendChild(sp)
       const bare = tok.replace(/[^A-Za-z']/g, '')
       // 所有正文词都可点击 → 飞行+穿透+spring 回归
@@ -234,7 +254,20 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
           diamond.style.opacity = '1'
         }
       })
-      words.push({ el: sp, furniture: bare.length >= minLen, seed: Math.random() * 6.28, dispMag: 0, escUx: 0, escUy: 0, rot: 0 })
+      words.push({
+        el: sp,
+        inner,
+        furniture: bare.length >= minLen,
+        seed: Math.random() * 6.28,
+        dispMag: 0,
+        escUx: 0,
+        escUy: 0,
+        rot: 0,
+        jAmp: 0,
+        jTarget: 0,
+        jEnd: 0,
+        jNext: Math.random() * JITTER_GAP_MAX, // 错峰，避免所有词同时决策
+      })
     }
   }
   function applyScrim() {
@@ -418,6 +451,30 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
         w.el.style.transform = `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) rotate(${w.rot.toFixed(2)}deg)`
       } else {
         w.el.style.transform = ''
+      }
+    }
+
+    // ── 无序抖动（内层 span，独立于 dodge）：随机一批词在抖、幅度随机、各自错峰 ──
+    for (const w of words) {
+      if (t >= w.jNext) {
+        // 决策：以一定概率开始一段随机幅度/随机时长的抖动
+        if (Math.random() < JITTER_CHANCE) {
+          w.jTarget = JITTER_AMP_MIN + Math.random() * (JITTER_AMP_MAX - JITTER_AMP_MIN)
+          w.jEnd = t + JITTER_DUR_MIN + Math.random() * (JITTER_DUR_MAX - JITTER_DUR_MIN)
+        }
+        w.jNext = t + JITTER_GAP_MIN + Math.random() * (JITTER_GAP_MAX - JITTER_GAP_MIN)
+      }
+      if (t >= w.jEnd) w.jTarget = 0 // 本段抖动结束 → 衰减回 0
+      w.jAmp += (w.jTarget - w.jAmp) * JITTER_EASE
+      if (w.jAmp > 0.05) {
+        const a = w.jAmp
+        // 每词两条不同频正弦叠加 + 各自相位(seed) → 不同步、无序
+        const jx = (Math.sin(t * JF1 + w.seed * 7.3) + Math.sin(t * JF2 + w.seed * 2.1)) * 0.5 * a
+        const jy = (Math.sin(t * JF3 + w.seed * 4.7) + Math.sin(t * JF4 + w.seed * 3.4)) * 0.5 * a
+        const jr = Math.sin(t * JF1 + w.seed * 5.5) * a * 0.4
+        w.inner.style.transform = `translate(${jx.toFixed(2)}px,${jy.toFixed(2)}px) rotate(${jr.toFixed(2)}deg)`
+      } else if (w.inner.style.transform) {
+        w.inner.style.transform = ''
       }
     }
   }
