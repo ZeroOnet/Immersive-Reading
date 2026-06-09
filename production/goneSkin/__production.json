@@ -1,0 +1,22 @@
+{
+  "effectId": "goneSkin",
+  "params": {
+    "subtitle": "飘",
+    "body": "Margaret Mitchell weaves a sweeping saga of pride.\n\nAt its heart is Scarlett O'Hara— beautiful, headstrong, and unapologetically determined. As war tears her world apart and everything she knew turns to ashes, she makes a vow that will carry her through:",
+    "quote": "\"As God is my witness, I'll never be hungry again.\"",
+    "subtitleColor": "#d1a96d",
+    "bodyColor": "#d7c1a9",
+    "quoteColor": "#d7c1a9",
+    "scrim": 0.18,
+    "burn": 0.01,
+    "edgeReach": 1,
+    "ragged": 0.85,
+    "ember": 0.05,
+    "sparks": 50,
+    "charColor": "#1a0f08",
+    "emberColor": "#ff7a2a",
+    "ashColor": "#0d0907",
+    "eraseRadius": 0.1
+  },
+  "savedAt": "2026-06-09T12:41:47.298Z"
+}
