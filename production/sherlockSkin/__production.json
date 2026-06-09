@@ -1,0 +1,20 @@
+{
+  "effectId": "sherlockSkin",
+  "params": {
+    "titleEn": "A Study in Scarlet",
+    "titleZh": "血字的研究",
+    "body": "“Look at that!” Inspector G. Lestrade said, triumphantly.\n\nI have remarked that the paper had fallen away in parts. In this particular corner of the room a large piece had peeled off, leaving a yellow square of coarse plastering. Across this bare space there was scrawled in blood-red letters a single word — **RACHE**.\n\n“And what does it mean now that you have found it?” asked Gregson in a depreciatory voice.\n\n“((Mean? __Why, it means that the writer was going to put the female name **Rachel**,__)) but was disturbed before he or she had time to finish. You mark my words, when this case comes to be cleared up you will find that a woman named **Rachel**.”\n\n“If this man was murdered, how was it done?” asked the former.\n\n“Poison,” said Sherlock Holmes curtly, and strode off. “One other thing, Lestrade,” he added, turning round at the door: ((“**Rache**,” is __the German for “revenge”; so don’t lose your time looking for Miss **Rachel**__.”))\n\n\n\n\n\n",
+    "titleColor": "#c0c9ca",
+    "bodyColor": "#c0c9ca",
+    "keywordColor": "#66cbe1",
+    "underlineColor": "#e63b3b",
+    "timeColor": "#ffffff",
+    "ctaLabel": "查看案发现场",
+    "scrim": 0.25,
+    "characterNames": [
+      "Inspector Lestrade",
+      "Sherlock Holmes"
+    ]
+  },
+  "savedAt": "2026-06-09T05:51:30.564Z"
+}
