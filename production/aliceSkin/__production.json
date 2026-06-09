@@ -1,0 +1,21 @@
+{
+  "effectId": "aliceSkin",
+  "params": {
+    "subtitle": "爱丽丝梦游仙境",
+    "body": "Have you ever wondered what happens when logic steps aside, and whimsical absurdity takes over? Then, welcome to a timeless tale that tumbled into our world in 1865 and has been charmingly disorienting readers ever since.",
+    "subtitleColor": "#fcf1b5",
+    "bodyColor": "#faf3d5",
+    "scrim": 0.18,
+    "baseFontSize": 19,
+    "maxScale": 2.4,
+    "minScale": 0.55,
+    "lineHeightExpand": 1,
+    "furnitureMinLen": 6,
+    "furnitureExtra": 0.5,
+    "ease": 0.06,
+    "aliceSpeed": 0.08,
+    "aliceSize": 48,
+    "eyeTrack": 1
+  },
+  "savedAt": "2026-06-09T06:00:32.712Z"
+}
