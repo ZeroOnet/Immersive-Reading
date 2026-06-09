@@ -416,6 +416,10 @@ export function mountVeilSmokeSkin(
         applyTranslationFade()
       }
     },
+    // 演示门户：外部按钮 / 大屏迷雾点击触发状态 toggle（同手指点演示屏烟雾的效果）
+    demoStep(_step: number) {
+      tweenState(params.state > 0.5 ? 0 : 1)
+    },
     resize() {
       rebuild()
     },

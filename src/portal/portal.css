@@ -1247,3 +1247,94 @@ h2 {
   opacity: 0.96;
   transform: translateY(0) scale(1);
 }
+
+/* ============================================================
+   模块四 第二页 · 言下之意（面纱·烟雾，326:11399 / 326:11520）
+   大屏迷雾粒子层 + Kalam 台词；点击迷雾 → 切换演示屏 + 大屏的台词 A↔B
+   ============================================================ */
+.m4-bg-dark {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #000;
+}
+.m4-fog {
+  position: absolute;
+  z-index: 2;
+  left: 11.43%;   /* 168/1470 */
+  top: 52.83%;    /* 505/956 */
+  width: 31.99%;  /* 470.25/1470 */
+  height: 30.56%; /* 292.18/956 */
+  cursor: pointer;
+}
+.m4-fog-canvas {
+  /* 比文字区四向外溢，给烟雾粒子留余地（取自 Figma image 1 的 overflow 比例） */
+  position: absolute;
+  top: -19%;
+  left: -49%;
+  width: 197%;
+  height: 178%;
+  pointer-events: none;
+  mix-blend-mode: lighten;
+  opacity: 0.6;
+}
+.m4-fog-text {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.m4-fog-en {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: "Kalam", cursive;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 60px;
+  letter-spacing: -0.56px;
+  text-align: center;
+  white-space: nowrap;
+  transition: opacity 0.6s ease;
+}
+.m4-fog-en-a {
+  top: 24.64%; /* 72/292.18 */
+  color: #bb915a;
+  text-shadow: 0 0 5.5px rgb(188 146 91 / 80%);
+}
+.m4-fog-en-b {
+  top: 18.19%; /* 53.15/292.18 */
+  color: #a4a4a4;
+  text-shadow: 0 0 5.5px rgb(164 164 164 / 80%);
+}
+.m4-fog-zh {
+  position: absolute;
+  left: 50%;
+  margin: 0;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 38px;
+  line-height: 38px;
+  text-align: center;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 65%);
+  transition: opacity 0.6s ease;
+  transform: translateX(-50%);
+}
+.m4-fog-zh-a { top: 50.78%; /* 148.37/292.18 */ }
+.m4-fog-zh-b { top: 66.74%; /* 195/292.18 */ }
+/* 默认 before：A 台词可见（EN 满 op、ZH 60%）；加 .is-after 后切到 B */
+.m4-fog-en,
+.m4-fog-zh {
+  opacity: 0;
+}
+.m4-veil-smoke .m4-fog-en-a { opacity: 1; }
+.m4-veil-smoke .m4-fog-zh-a { opacity: 0.6; }
+.m4-veil-smoke.is-after .m4-fog-en-a,
+.m4-veil-smoke.is-after .m4-fog-zh-a { opacity: 0; }
+.m4-veil-smoke.is-after .m4-fog-en-b { opacity: 1; }
+.m4-veil-smoke.is-after .m4-fog-zh-b { opacity: 0.6; }
+/* phone 卡片：右半中位 */
+.m4-veil-smoke-card {
+  left: 67.27%; /* 988.83/1470 */
+}

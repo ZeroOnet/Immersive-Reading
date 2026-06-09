@@ -258,6 +258,111 @@ function unmountUndertone() {
   document.querySelector('.m4-undertone')?.classList.remove('is-after')
 }
 
+// 模块四·言下之意第二页（m4-veil-smoke）：实跑 veilSmokeSkin。
+// 大屏：迷雾 canvas（同 veilSmokeSkin 粒子做法，smoke.png × N 旋转面片）+ Kalam 台词 A↔B
+// 点击演示屏烟雾 或 大屏迷雾区，都 toggle veilSmokeSkin.state（演示屏内自带 click→tweenState；
+// 大屏点击通过 demoStep(1) 进入同一条 tween）。rAF 轮询 state 把 .is-after 同步到大屏，文字 crossfade
+let veilSmokeHandle: (EffectHandle<unknown> & { getParams?(): { state?: number } }) | null = null
+let veilSmokeRaf = 0
+let veilSmokeFogRaf = 0
+function mountVeilSmoke() {
+  if (veilSmokeHandle) return
+  const card = document.getElementById('m4vs-card')
+  const sect = document.querySelector<HTMLElement>('.m4-veil-smoke')
+  const fogWrap = sect?.querySelector<HTMLElement>('.m4-fog')
+  const canvas = sect?.querySelector<HTMLCanvasElement>('.m4-fog-canvas')
+  const vsk = effect('veilSmokeSkin')
+  if (!card || !sect || !fogWrap || !canvas || !vsk) return
+
+  veilSmokeHandle = vsk.mount(card, structuredClone(vsk.defaultParams))
+  sect.classList.remove('is-after')
+
+  // 大屏迷雾粒子：N 个 smoke.png 面片随机位置/尺寸/角度，每帧自转 → 翻滚烟雾
+  const ctx = canvas.getContext('2d')!
+  const tex = new Image()
+  tex.src = new URL('../effects/veilSmokeSkin/smoke.png', import.meta.url).href
+  interface Plane { x: number; y: number; size: number; rot: number; rotSpeed: number; alpha: number }
+  let planes: Plane[] = []
+  let SW = 0
+  let SH = 0
+  function spawn(): Plane {
+    return {
+      x: (Math.random() - 0.15) * SW * 1.3,
+      y: SH * (0.3 + Math.random() * 0.7),
+      size: 320 + Math.random() * 360,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.32,
+      alpha: 0.07 + Math.random() * 0.13,
+    }
+  }
+  function sizeFog() {
+    const r = canvas!.getBoundingClientRect()
+    SW = Math.max(1, r.width)
+    SH = Math.max(1, r.height)
+    const dp = Math.min(window.devicePixelRatio || 1, 2)
+    canvas!.width = Math.floor(SW * dp)
+    canvas!.height = Math.floor(SH * dp)
+    ctx.setTransform(dp, 0, 0, dp, 0, 0)
+    planes = Array.from({ length: 60 }, spawn)
+  }
+  let lastT = performance.now()
+  const fogTick = () => {
+    const now = performance.now()
+    const dt = Math.min(0.05, (now - lastT) / 1000)
+    lastT = now
+    for (const p of planes) p.rot += p.rotSpeed * dt
+    ctx.clearRect(0, 0, SW, SH)
+    if (tex.complete && tex.naturalWidth > 0) {
+      for (const p of planes) {
+        ctx.globalAlpha = p.alpha
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.rot)
+        ctx.drawImage(tex, -p.size / 2, -p.size / 2, p.size, p.size)
+        ctx.restore()
+      }
+      ctx.globalAlpha = 1
+    }
+    veilSmokeFogRaf = requestAnimationFrame(fogTick)
+  }
+  sizeFog()
+  veilSmokeFogRaf = requestAnimationFrame(fogTick)
+  // 容器尺寸变化时重采样
+  const ro = new ResizeObserver(() => sizeFog())
+  ro.observe(canvas)
+
+  // 大屏迷雾区点击 → 通过 demoStep(1) 触发演示屏同一条 tween（state 反转）
+  const onFogClick = () => veilSmokeHandle?.demoStep?.(1)
+  fogWrap.addEventListener('click', onFogClick)
+
+  // rAF 同步 state → 大屏 .is-after（>0.5 切到 B 台词）
+  const sync = () => {
+    const p = veilSmokeHandle?.getParams?.()
+    const s = typeof p?.state === 'number' ? p.state : 0
+    sect.classList.toggle('is-after', s > 0.5)
+    veilSmokeRaf = requestAnimationFrame(sync)
+  }
+  veilSmokeRaf = requestAnimationFrame(sync)
+
+  // 卸载时清理
+  veilSmokeCleanup = () => {
+    ro.disconnect()
+    fogWrap.removeEventListener('click', onFogClick)
+  }
+}
+let veilSmokeCleanup: (() => void) | null = null
+function unmountVeilSmoke() {
+  cancelAnimationFrame(veilSmokeRaf)
+  cancelAnimationFrame(veilSmokeFogRaf)
+  veilSmokeRaf = 0
+  veilSmokeFogRaf = 0
+  veilSmokeCleanup?.()
+  veilSmokeCleanup = null
+  veilSmokeHandle?.destroy()
+  veilSmokeHandle = null
+  document.querySelector('.m4-veil-smoke')?.classList.remove('is-after')
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
@@ -267,6 +372,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m3-alice')) unmountAlice()
   if (prevPage.classList.contains('m3-fall')) unmountFall()
   if (prevPage.classList.contains('m4-undertone')) unmountUndertone()
+  if (prevPage.classList.contains('m4-veil-smoke')) unmountVeilSmoke()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
@@ -275,6 +381,7 @@ function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (nextPage.classList.contains('m3-alice')) mountAlice()
   if (nextPage.classList.contains('m3-fall')) mountFall()
   if (nextPage.classList.contains('m4-undertone')) mountUndertone()
+  if (nextPage.classList.contains('m4-veil-smoke')) mountVeilSmoke()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -287,3 +394,4 @@ if (active?.classList.contains('m2-ring')) mountRing()
 if (active?.classList.contains('m3-alice')) mountAlice()
 if (active?.classList.contains('m3-fall')) mountFall()
 if (active?.classList.contains('m4-undertone')) mountUndertone()
+if (active?.classList.contains('m4-veil-smoke')) mountVeilSmoke()
