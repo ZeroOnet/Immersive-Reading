@@ -18,8 +18,9 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   container.appendChild(root)
 
   // 背景：油灯火焰闪烁视频（首帧=尾帧无缝循环）+ 大气覆盖层，带声播放。
-  // 视频由原 bg.png 生成、构图一致 → 沿用同一 object-fit:cover + 右下 object-position（与 Figma "right=0 bottom=-6" 对齐）
+  // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 101:69（x=-6 y=-27 w=468 h=832）；溢出由 root overflow:hidden 裁掉
   // 浏览器禁止带声 autoplay → 被拒时降级静音播 + 首次交互（点击/触摸/按键）解除静音
+  const BG_VIDEO_FRAME = { left: -6, top: -27, width: 468, height: 832 }
   const bg = document.createElement('video')
   bg.src = bgVideo
   bg.autoplay = true
@@ -28,7 +29,8 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   bg.setAttribute('playsinline', '')
   bg.setAttribute('webkit-playsinline', '')
   bg.style.cssText =
-    'position:absolute;inset:0;width:100%;height:calc(100% + 6px);object-fit:cover;object-position:100% 100%;pointer-events:none;z-index:0;'
+    `position:absolute;left:${BG_VIDEO_FRAME.left}px;top:${BG_VIDEO_FRAME.top}px;width:${BG_VIDEO_FRAME.width}px;height:${BG_VIDEO_FRAME.height}px;` +
+    'object-fit:cover;pointer-events:none;z-index:0;'
   root.appendChild(bg)
   bg.muted = false
   bg.volume = 1
@@ -119,7 +121,7 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   const tr = makePhrase(0, 698.06, 139.709, 80.083, 24.43, 'translateX(-50%)')
   tr.wrap.style.left = 'calc(50% - 116.49px)'
   tr.p.style.cssText +=
-    "font-family:'Source Han Sans CN','PingFang SC',sans-serif;font-weight:300;font-size:20px;line-height:23px;letter-spacing:.4px;text-shadow:0 1px 2px rgba(0,0,0,.4);"
+    "font-family:'Noto Sans SC','Source Han Sans CN','PingFang SC',sans-serif;font-style:italic;font-weight:300;font-size:20px;line-height:23px;letter-spacing:.4px;text-shadow:0 1px 2px rgba(0,0,0,.4);"
   col.appendChild(tr.wrap)
 
   // 解释卡（设计 58:3981 + 58:3982）：米色 blur 背板 + 上方说明 + 引用框
@@ -138,7 +140,9 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   const noteContent = document.createElement('div')
   noteContent.style.cssText =
     'position:absolute;left:15px;top:16px;width:120px;display:flex;flex-direction:column;gap:16px;' +
-    "font-family:'Source Han Sans CN','PingFang SC',sans-serif;color:#1e2e2e;"
+    // 设计字体「将城斜黑」(JiangChengXieHei) 是斜黑体、自带斜，不可加载 → 用思源黑/苹方 + font-style:italic 近似那个斜。
+    // 强调一律用字重(下方 500/700/900)，不靠 CSS 斜体：斜来自字体、加粗来自字重，二者区分。
+    "font-family:'Noto Sans SC','Source Han Sans CN','PingFang SC',sans-serif;font-style:italic;color:#1e2e2e;"
   noteBox.appendChild(noteContent)
   // 上半段（混合字号/字重的说明文）
   const noteText = document.createElement('p')
@@ -165,17 +169,30 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
     ;[ph1, ph2, ph3].forEach((ph) => (ph.p.style.color = params.phraseColor))
     tr.p.textContent = params.translation
     tr.p.style.color = params.translationColor
-    // 解释卡内容：手工拼 span（多字号/字重）
+    // 解释卡内容：对齐 Figma 58:3983 / 58:3985。基础 300、强调 500，出处 13px 40% 暗、书名 700，后半句回 15px 满色。
+    const introWalter = esc(params.noteIntro).replace('Walter', '<span style="font-weight:500">Walter</span>') // Walter 加粗 500
+    const closeParen = esc(params.noteSrcSuffix.charAt(0)) // "）" 仍属暗淡出处段
+    const afterParen = esc(params.noteSrcSuffix.slice(1)) // "，这里表达的意思是：" 回 15px 满色
     noteText.innerHTML =
-      `<span style="font-size:15px;font-weight:300">${esc(params.noteIntro)} </span>` +
-      `<span style="font-size:15px;font-weight:600">${esc(params.noteIntroBold)}</span>` +
-      `<span style="font-size:13px;color:rgba(30,46,46,.55)"> ${esc(params.noteSrcPrefix)}</span>` +
-      `<span style="font-size:13px;font-weight:700;color:rgba(30,46,46,.55)">${esc(params.noteSrc)}</span>` +
-      `<span style="font-size:13px;color:rgba(30,46,46,.55)">${esc(params.noteSrcSuffix)}</span>`
-    // 引用文：**xxx** → <b>xxx</b>
+      `<span style="font-size:15px;font-weight:300">${introWalter} </span>` +
+      `<span style="font-size:15px;font-weight:500">${esc(params.noteIntroBold)}</span>` +
+      `<span style="font-size:13px;color:rgba(30,46,46,.4)"> ${esc(params.noteSrcPrefix)}</span>` +
+      `<span style="font-size:13px;font-weight:700;color:rgba(30,46,46,.4)">${esc(params.noteSrc)}</span>` +
+      `<span style="font-size:13px;color:rgba(30,46,46,.4)">${closeParen}</span>` +
+      `<span style="font-size:15px;font-weight:300">${afterParen}</span>`
+    // 引文：第一处加粗 900、第二处 700（设计 58:3985）
+    let qBold = 0
+    const qWeights = [900, 700]
     quoteText.innerHTML = params.noteQuote
       .split(/(\*\*[^*]+\*\*)/g)
-      .map((seg) => (seg.startsWith('**') && seg.endsWith('**') ? `<b style="font-weight:800">${esc(seg.slice(2, -2))}</b>` : esc(seg)))
+      .map((seg) => {
+        if (seg.startsWith('**') && seg.endsWith('**')) {
+          const w = qWeights[qBold] ?? 700
+          qBold++
+          return `<b style="font-weight:${w}">${esc(seg.slice(2, -2))}</b>`
+        }
+        return esc(seg)
+      })
       .join('')
   }
   function applyScrim() {
@@ -296,7 +313,7 @@ function ensureStyles() {
   l.id = 'veil-skin-fonts'
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Source+Serif+Pro:wght@400&family=Kalam:wght@300;400;700&display=swap'
+    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Noto+Sans+SC:wght@300;500;700;900&family=Source+Serif+Pro:wght@400&family=Kalam:wght@300;400;700&display=swap'
   document.head.appendChild(l)
   // 呼吸灯：1.6s 一次的 scale + opacity + drop-shadow 循环
   const st = document.createElement('style')

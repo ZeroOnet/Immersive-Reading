@@ -44,7 +44,7 @@ export const defaultParams: VeilSkinParams = {
   phrase1: '“The dog',
   phrase2: 'it was',
   phrase3: 'that died.”',
-  phraseColor: '#d1a96d',
+  phraseColor: '#d6c8b1', // 与译文(死的确是狗)同色（Figma node 58:3707）
   translation: '（死的确是狗）',
   translationColor: '#d6c8b1',
   tooltipOpen: 0,
