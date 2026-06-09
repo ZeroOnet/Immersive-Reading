@@ -120,23 +120,30 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
   // 飞行物初始位置：相对卡牌的 inset 比例（Figma 静止态：心形 111:499 / 菱形 111:463）
   //   ♥ 在 cardMR 的 inset[30.53% 49.21% 63.8% 33.36%] → left:33.36% top:30.53% 宽:17.43% 高:5.67%，无旋转
   //   ♦ 在 cardML 的 inset[9.48% 22.08% 80.84% 44.16%]  → left:44.16% top:9.48%  宽:33.76% 高:9.68%，无旋转
+  // 自身渲染缩放：portal 等场景 root 被祖先 transform:scale 缩放；getBoundingClientRect 返回的是
+  // 视口(缩放)坐标，但纸牌/心菱/单词都按 root 本地未缩放坐标定位 → 把相对坐标除以 selfScale 换回本地坐标
+  const selfScale = () => {
+    const w = root.offsetWidth
+    return w ? root.getBoundingClientRect().width / w : 1
+  }
   function getRestPos(kind: 'heart' | 'diamond'): { x: number; y: number; rot: number; w: number } {
+    const sc = selfScale()
     const rootR = root.getBoundingClientRect()
     const cardEl = kind === 'heart' ? cardMREl : cardMLEl
     const cardR = cardEl.getBoundingClientRect()
     if (kind === 'heart') {
       return {
-        x: cardR.left - rootR.left + cardR.width * 0.3336,
-        y: cardR.top - rootR.top + cardR.height * 0.3053,
+        x: (cardR.left - rootR.left) / sc + (cardR.width / sc) * 0.3336,
+        y: (cardR.top - rootR.top) / sc + (cardR.height / sc) * 0.3053,
         rot: 0,
-        w: cardR.width * 0.1743,
+        w: (cardR.width / sc) * 0.1743,
       }
     }
     return {
-      x: cardR.left - rootR.left + cardR.width * 0.4416,
-      y: cardR.top - rootR.top + cardR.height * 0.0948,
+      x: (cardR.left - rootR.left) / sc + (cardR.width / sc) * 0.4416,
+      y: (cardR.top - rootR.top) / sc + (cardR.height / sc) * 0.0948,
       rot: 0,
-      w: cardR.width * 0.3376,
+      w: (cardR.width / sc) * 0.3376,
     }
   }
   function placeAtRest(kind: 'heart' | 'diamond', scale: number = 1) {
@@ -237,15 +244,16 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
         // 替换式高亮：任何旧高亮先清掉，再点亮当前词
         for (const w of words) w.el.classList.remove('alice-active')
         sp.classList.add('alice-active')
-        // 捕获词中心（root 坐标），作为抛物线的中点（t=0.5 击中）
+        // 捕获词中心（root 本地未缩放坐标），作为抛物线的中点（t=0.5 击中）
+        const sc = selfScale()
         const rRect = root.getBoundingClientRect()
         const wRect = sp.getBoundingClientRect()
         targetWord = sp
-        targetX = wRect.left + wRect.width / 2 - rRect.left
-        targetY = wRect.top + wRect.height / 2 - rRect.top
+        targetX = (wRect.left + wRect.width / 2 - rRect.left) / sc
+        targetY = (wRect.top + wRect.height / 2 - rRect.top) / sc
         hitDone = false
         // 选边：词偏左 → ♦ 从 cardML 来；词偏右 → ♥ 从 cardMR 来
-        const kind: 'heart' | 'diamond' = targetX < rRect.width / 2 ? 'diamond' : 'heart'
+        const kind: 'heart' | 'diamond' = targetX < rRect.width / sc / 2 ? 'diamond' : 'heart'
         projectileKind = kind
         projT = 0
         if (kind === 'heart') {
@@ -352,6 +360,7 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
     //   · 词按位移量倾斜旋转（叠加每词随机扰动），不再强制正立
     //   · 飞行物离开 / 结束后位移与旋转 ease 回 0 → 单词自然归位
     const rootR2 = root.getBoundingClientRect()
+    const sc2 = selfScale() // root 本地未缩放坐标换算
     // 飞行物当前包围盒半宽/半高（计入其行进旋转后的 AABB 膨胀）
     let projHalfX = PROJ_HALF_W
     let projHalfY = PROJ_HALF_W
@@ -388,9 +397,9 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
       const rect = w.el.getBoundingClientRect()
       const dxNow = w.dispMag * w.escUx
       const dyNow = w.dispMag * w.escUy
-      // 当前 rect 已含 translate(dxNow,dyNow) 与绕中心的 rotate → 回推静止中心
-      const rcx = rect.left + rect.width / 2 - rootR2.left - dxNow
-      const rcy = rect.top + rect.height / 2 - rootR2.top - dyNow
+      // 当前 rect 已含 translate(dxNow,dyNow) 与绕中心的 rotate → 换回本地坐标(/sc2)后回推静止中心
+      const rcx = (rect.left + rect.width / 2 - rootR2.left) / sc2 - dxNow
+      const rcy = (rect.top + rect.height / 2 - rootR2.top) / sc2 - dyNow
       // 词静止包围盒半宽/半高，按当前旋转角膨胀为 AABB
       const hw0 = (w.el.offsetWidth || 16) / 2
       const hh0 = (w.el.offsetHeight || 20) / 2

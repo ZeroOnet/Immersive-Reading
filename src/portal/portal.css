@@ -889,3 +889,57 @@ h2 {
   text-align: right;
   white-space: nowrap;
 }
+
+/* ============================================================
+   模块三 · 奇幻体验 WOW MOMENT（爱丽丝，321:11114）：标题复用 .m1-title-*
+   ============================================================ */
+.m3-bg {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: url("./assets/images/module3-bg.png") center / cover no-repeat;
+}
+.m3-num {
+  position: absolute;
+  z-index: 3;
+  left: 1.94%;
+  top: 17.49%;
+  width: 99.44px;
+  height: 85.91px;
+  background: url("./assets/images/module3-num.svg") center / contain no-repeat;
+}
+/* 文案在右侧（右对齐）*/
+.m3-copy {
+  position: absolute;
+  z-index: 3;
+  right: 1.5%;
+  top: 16.32%;
+  margin: 0;
+  font-family: "JiangCheng XieHei", sans-serif;
+  font-weight: 300;
+  font-size: 42px;
+  line-height: 56px;
+  letter-spacing: -0.42px;
+  color: rgb(228 228 225 / 80%);
+  text-align: right;
+  white-space: nowrap;
+}
+/* 爱丽丝 demo 卡片居中(53.1%)，覆盖 .m1-card 的 left */
+.m3-alice-card {
+  left: 53.1%;
+}
+.m3-alice-hint {
+  position: absolute;
+  z-index: 3;
+  right: 64.69%;
+  bottom: 32.32%;
+  margin: 0;
+  font-family: "MiSans VF", sans-serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 46px;
+  letter-spacing: -0.34px;
+  color: rgb(228 228 225 / 80%);
+  text-align: right;
+  white-space: nowrap;
+}

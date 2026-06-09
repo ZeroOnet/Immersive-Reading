@@ -189,17 +189,32 @@ function unmountRing() {
   ringHandle = null
 }
 
+// 模块三·爱丽丝（m3-alice）：demo 卡片 → 实跑 aliceSkin（点击词 → 纸牌飞出撞散文字）
+let aliceHandle: EffectHandle<unknown> | null = null
+function mountAlice() {
+  if (aliceHandle) return
+  const card = document.getElementById('m3alice-card')
+  const ak = effect('aliceSkin')
+  if (card && ak) aliceHandle = ak.mount(card, structuredClone(ak.defaultParams))
+}
+function unmountAlice() {
+  aliceHandle?.destroy()
+  aliceHandle = null
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
   if (prevPage.classList.contains('m1-gone')) unmountGone()
   if (prevPage.classList.contains('m2-sherlock')) unmountSherlock()
   if (prevPage.classList.contains('m2-ring')) unmountRing()
+  if (prevPage.classList.contains('m3-alice')) unmountAlice()
   if (nextPage.classList.contains('m1-wuther')) mountWuther()
   if (nextPage.classList.contains('m1-oldman')) mountOldman()
   if (nextPage.classList.contains('m1-gone')) mountGone()
   if (nextPage.classList.contains('m2-sherlock')) mountSherlock()
   if (nextPage.classList.contains('m2-ring')) mountRing()
+  if (nextPage.classList.contains('m3-alice')) mountAlice()
 }
 
 // 首屏激活页兜底（一般是 hero，不挂）
@@ -209,3 +224,4 @@ if (active?.classList.contains('m1-oldman')) mountOldman()
 if (active?.classList.contains('m1-gone')) mountGone()
 if (active?.classList.contains('m2-sherlock')) mountSherlock()
 if (active?.classList.contains('m2-ring')) mountRing()
+if (active?.classList.contains('m3-alice')) mountAlice()
