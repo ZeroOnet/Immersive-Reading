@@ -1179,7 +1179,9 @@ h2 {
   white-space: nowrap;
 }
 .m4-quote-zh {
-  margin: 12px 0 0 1.5em;
+  /* 居中对齐上面那句英文：容器宽=英文行宽，去掉左缩进 + 文本居中 */
+  margin: 12px 0 0 0;
+  text-align: center;
   font-family: "JiangCheng XieHei", sans-serif;
   font-weight: 100;
   font-size: 38px;
