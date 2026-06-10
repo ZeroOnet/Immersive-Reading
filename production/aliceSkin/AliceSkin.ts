@@ -10,6 +10,7 @@ import cardBL from './cardBL.png'
 import cardBM from './cardBM.png'
 import heartImg from './heart.png'
 import diamondImg from './diamond.png'
+import titleAliceWonderland from './titleAliceWonderland.png'
 
 interface Word {
   el: HTMLElement // 外层 span：做让位 dodge（translate+rotate）
@@ -57,14 +58,14 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
     im.style.cssText = `position:absolute;${css};user-select:none;pointer-events:none;`
     return im
   }
-  // 卡牌按 Figma 固有设计 px 渲染；left:0 / right:0 / bottom:0 锚到 root（= 容器 = 屏幕）边缘
-  const cardMREl = mkCard(cardMR, 'top:455px;right:0;width:120px;height:439px')
-  const cardMLEl = mkCard(cardML, 'top:269px;left:0;width:77px;height:338px')
+  // 卡牌按 Figma 25:536 绝对坐标渲染；其父组 25:537 相对屏幕偏移 x=-17/y=-54。
+  const cardMREl = mkCard(cardMR, 'top:401.4px;left:275.6px;width:119.9px;height:438.9px')
+  const cardMLEl = mkCard(cardML, 'top:215px;left:-17px;width:77px;height:337.7px')
   stage.append(
-    mkCard(cardTL, 'top:0;left:0;width:286px;height:256px'),
-    mkCard(cardTR, 'top:30px;right:0;width:162px;height:457px'),
-    mkCard(cardBL, 'bottom:0;left:-4px;width:101px;height:213px'),
-    mkCard(cardBM, 'bottom:0;left:-2px;width:306px;height:91px'),
+    mkCard(cardTL, 'top:-54px;left:-17px;width:286px;height:256.3px'),
+    mkCard(cardTR, 'top:-24px;left:234px;width:161.7px;height:456.5px'),
+    mkCard(cardBL, 'top:527px;left:-21px;width:101.2px;height:213.4px'),
+    mkCard(cardBM, 'top:727px;left:-19px;width:305.8px;height:91.3px'),
     cardMLEl, // 后 append → 顶层
     cardMREl,
   )
@@ -94,13 +95,21 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
     '</span>'
   col.appendChild(status)
 
+  const titleImg = document.createElement('img')
+  titleImg.src = titleAliceWonderland
+  titleImg.alt = 'Alice in Wonderland'
+  titleImg.style.cssText =
+    'position:absolute;left:25px;top:147px;width:281px;height:125px;object-fit:contain;pointer-events:none;user-select:none;z-index:2;'
+  col.appendChild(titleImg)
+
   const subtitle = document.createElement('p')
   subtitle.style.cssText =
-    "position:absolute;left:75px;top:277px;margin:0;font-family:'Noto Serif SC',serif;font-weight:600;font-size:20px;white-space:nowrap;transform-origin:left center;"
+    "position:absolute;left:50%;top:264px;margin:0;font-family:'Source Han Serif CN','Noto Serif SC','Songti SC',serif;font-weight:500;font-size:31px;line-height:38px;letter-spacing:.62px;white-space:nowrap;transform:translateX(-50%);transform-origin:center center;z-index:3;"
   col.appendChild(subtitle)
 
   const bodyP = document.createElement('p')
-  bodyP.style.cssText = "position:absolute;left:83px;top:328px;width:210px;margin:0;font-family:'Noto Serif SC',serif;font-size:19px;line-height:1.47;"
+  bodyP.style.cssText =
+    "position:absolute;left:72px;top:321px;width:210px;margin:0;font-family:'Source Han Serif CN','Noto Serif SC','Songti SC',serif;font-weight:300;font-size:19px;line-height:30px;text-align:center;"
   col.appendChild(bodyP)
 
   // 飞行物：心形（来自 Queen 牌 cardMR）/ 菱形（来自 Jack 牌 cardML）
@@ -120,23 +129,30 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
   // 飞行物初始位置：相对卡牌的 inset 比例（Figma 静止态：心形 111:499 / 菱形 111:463）
   //   ♥ 在 cardMR 的 inset[30.53% 49.21% 63.8% 33.36%] → left:33.36% top:30.53% 宽:17.43% 高:5.67%，无旋转
   //   ♦ 在 cardML 的 inset[9.48% 22.08% 80.84% 44.16%]  → left:44.16% top:9.48%  宽:33.76% 高:9.68%，无旋转
+  // 自身渲染缩放：portal 等场景 root 被祖先 transform:scale 缩放；getBoundingClientRect 返回的是
+  // 视口(缩放)坐标，但纸牌/心菱/单词都按 root 本地未缩放坐标定位 → 把相对坐标除以 selfScale 换回本地坐标
+  const selfScale = () => {
+    const w = root.offsetWidth
+    return w ? root.getBoundingClientRect().width / w : 1
+  }
   function getRestPos(kind: 'heart' | 'diamond'): { x: number; y: number; rot: number; w: number } {
+    const sc = selfScale()
     const rootR = root.getBoundingClientRect()
     const cardEl = kind === 'heart' ? cardMREl : cardMLEl
     const cardR = cardEl.getBoundingClientRect()
     if (kind === 'heart') {
       return {
-        x: cardR.left - rootR.left + cardR.width * 0.3336,
-        y: cardR.top - rootR.top + cardR.height * 0.3053,
+        x: (cardR.left - rootR.left) / sc + (cardR.width / sc) * 0.3336,
+        y: (cardR.top - rootR.top) / sc + (cardR.height / sc) * 0.3053,
         rot: 0,
-        w: cardR.width * 0.1743,
+        w: (cardR.width / sc) * 0.1743,
       }
     }
     return {
-      x: cardR.left - rootR.left + cardR.width * 0.4416,
-      y: cardR.top - rootR.top + cardR.height * 0.0948,
+      x: (cardR.left - rootR.left) / sc + (cardR.width / sc) * 0.4416,
+      y: (cardR.top - rootR.top) / sc + (cardR.height / sc) * 0.0948,
       rot: 0,
-      w: cardR.width * 0.3376,
+      w: (cardR.width / sc) * 0.3376,
     }
   }
   function placeAtRest(kind: 'heart' | 'diamond', scale: number = 1) {
@@ -237,15 +253,16 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
         // 替换式高亮：任何旧高亮先清掉，再点亮当前词
         for (const w of words) w.el.classList.remove('alice-active')
         sp.classList.add('alice-active')
-        // 捕获词中心（root 坐标），作为抛物线的中点（t=0.5 击中）
+        // 捕获词中心（root 本地未缩放坐标），作为抛物线的中点（t=0.5 击中）
+        const sc = selfScale()
         const rRect = root.getBoundingClientRect()
         const wRect = sp.getBoundingClientRect()
         targetWord = sp
-        targetX = wRect.left + wRect.width / 2 - rRect.left
-        targetY = wRect.top + wRect.height / 2 - rRect.top
+        targetX = (wRect.left + wRect.width / 2 - rRect.left) / sc
+        targetY = (wRect.top + wRect.height / 2 - rRect.top) / sc
         hitDone = false
         // 选边：词偏左 → ♦ 从 cardML 来；词偏右 → ♥ 从 cardMR 来
-        const kind: 'heart' | 'diamond' = targetX < rRect.width / 2 ? 'diamond' : 'heart'
+        const kind: 'heart' | 'diamond' = targetX < rRect.width / sc / 2 ? 'diamond' : 'heart'
         projectileKind = kind
         projT = 0
         if (kind === 'heart') {
@@ -352,6 +369,7 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
     //   · 词按位移量倾斜旋转（叠加每词随机扰动），不再强制正立
     //   · 飞行物离开 / 结束后位移与旋转 ease 回 0 → 单词自然归位
     const rootR2 = root.getBoundingClientRect()
+    const sc2 = selfScale() // root 本地未缩放坐标换算
     // 飞行物当前包围盒半宽/半高（计入其行进旋转后的 AABB 膨胀）
     let projHalfX = PROJ_HALF_W
     let projHalfY = PROJ_HALF_W
@@ -388,9 +406,9 @@ export function mountAliceSkin(container: HTMLElement, initial: AliceSkinParams)
       const rect = w.el.getBoundingClientRect()
       const dxNow = w.dispMag * w.escUx
       const dyNow = w.dispMag * w.escUy
-      // 当前 rect 已含 translate(dxNow,dyNow) 与绕中心的 rotate → 回推静止中心
-      const rcx = rect.left + rect.width / 2 - rootR2.left - dxNow
-      const rcy = rect.top + rect.height / 2 - rootR2.top - dyNow
+      // 当前 rect 已含 translate(dxNow,dyNow) 与绕中心的 rotate → 换回本地坐标(/sc2)后回推静止中心
+      const rcx = (rect.left + rect.width / 2 - rootR2.left) / sc2 - dxNow
+      const rcy = (rect.top + rect.height / 2 - rootR2.top) / sc2 - dyNow
       // 词静止包围盒半宽/半高，按当前旋转角膨胀为 AABB
       const hw0 = (w.el.offsetWidth || 16) / 2
       const hh0 = (w.el.offsetHeight || 20) / 2
@@ -540,7 +558,7 @@ function ensureFonts() {
   const l = document.createElement('link')
   l.id = 'alice-skin-fonts'
   l.rel = 'stylesheet'
-  l.href = 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap'
+  l.href = 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&display=swap'
   document.head.appendChild(l)
   // 可点击词点击态样式（Figma 111:473）
   const st = document.createElement('style')

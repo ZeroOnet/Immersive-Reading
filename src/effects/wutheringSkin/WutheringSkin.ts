@@ -89,18 +89,18 @@ export function mountWutheringSkin(
 
   const subtitle = document.createElement('p')
   subtitle.style.cssText =
-    "margin:4px 0 0 28px;font-family:'MiSans VF','PingFang SC',system-ui,sans-serif;font-size:20px;white-space:nowrap;"
+    "margin:-2px 0 0 28px;font-family:'Source Han Serif CN','Noto Serif SC','Songti SC',serif;font-weight:500;font-size:32px;line-height:46px;white-space:nowrap;"
   inner.appendChild(subtitle)
 
   const bodyBox = document.createElement('div')
   bodyBox.style.cssText =
-    "margin:24px 46px 0 28px;font-family:'Source Serif Pro',Georgia,serif;font-size:21px;line-height:31px;"
+    "margin:15px 46px 0 28px;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21px;line-height:31px;"
   inner.appendChild(bodyBox)
 
   const hidden = document.createElement('div')
   hidden.style.cssText =
     "position:absolute;left:0;right:0;bottom:11%;text-align:center;font-style:italic;opacity:0;transition:opacity .8s ease;" +
-    "font-family:'Source Serif Pro',Georgia,serif;font-size:clamp(1rem,3.4vw,1.3rem);pointer-events:none;z-index:2;"
+    "font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:clamp(1rem,3.4vw,1.3rem);pointer-events:none;z-index:2;"
   col.appendChild(hidden)
 
   // ── 状态 ──
@@ -248,7 +248,7 @@ function ensureFonts() {
   const l = document.createElement('link')
   l.id = 'wuth-skin-fonts'
   l.rel = 'stylesheet'
-  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@600&family=Source+Serif+Pro:wght@400&display=swap'
+  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@600&family=Noto+Serif+SC:wght@500&family=Source+Serif+Pro:wght@300&display=swap'
   document.head.appendChild(l)
 }
 function ensureStyle() {

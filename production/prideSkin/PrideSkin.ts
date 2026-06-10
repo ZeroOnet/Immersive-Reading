@@ -4,6 +4,7 @@ import bgVideo from './bg.mp4'
 import bgOverlayImg from './bgOverlay.png'
 import stickerShadowSvg from './stickerShadow.svg'
 import stickerPaperImg from './stickerPaper.png'
+import truthEnHandSvg from './truthEnHand.svg'
 
 const DW = 375 // 设计列宽
 const STICKER_W = 319
@@ -79,17 +80,17 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
   // 字体栈先 Apple 系统 'Bodoni 72'（窄于 Web 的 Bodoni Moda），iPhone 上直接命中；
   // 再 fallback Bodoni Moda（更宽）→ 用更紧字距与略小字号兜住 375 列宽不溢出
   titleEn.style.cssText =
-    "position:absolute;left:28px;right:18px;top:104px;margin:0;font-family:'Bodoni 72','Bodoni Moda',serif;font-weight:400;font-size:40px;letter-spacing:-.6px;line-height:34px;color:#8d8e9d;white-space:nowrap;"
+    "position:absolute;left:28px;right:18px;top:104px;margin:0;font-family:'Bodoni 72','Bodoni Moda',serif;font-weight:400;font-size:42px;letter-spacing:-.42px;line-height:34px;color:#565574;white-space:nowrap;"
   col.appendChild(titleEn)
   const titleZh = document.createElement('p')
   titleZh.style.cssText =
-    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:600;font-size:31px;color:#b79f82;white-space:nowrap;"
+    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:31px;color:#7d6355;white-space:nowrap;"
   col.appendChild(titleZh)
 
   // 正文（58:3483，306w 20px/30）
   const body = document.createElement('div')
   body.style.cssText =
-    "position:absolute;left:28px;top:205px;width:306px;font-family:'Source Serif Pro',Georgia,serif;font-weight:400;font-size:20px;line-height:30px;color:#585054;"
+    "position:absolute;left:28px;top:205px;width:306px;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:20px;line-height:30px;color:#585054;"
   col.appendChild(body)
 
   // 揭示堆叠：truth 在下 + lie 在上（可撕）。perspective 设在 stack 本地，避免被 col 的 translateX 隔离
@@ -111,25 +112,25 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
   // 左侧浅棕胶贴（58:3551：14×48，蜡纸感）
   const truthTape = document.createElement('div')
   truthTape.style.cssText =
-    'position:absolute;left:0;top:0;width:14px;height:48px;' +
+    'position:absolute;left:-14px;top:0;width:14px;height:48px;' +
     'background:linear-gradient(90deg,rgba(0,0,0,.2),rgba(0,0,0,.2)),linear-gradient(90deg,rgb(232,214,194),rgb(232,214,194));' +
     'box-shadow:-4px 0 2px 0 rgba(0,0,0,.24);'
   truthSticker.appendChild(truthTape)
-  const truthEn = document.createElement('p')
+  const truthEn = document.createElement('img')
+  truthEn.src = truthEnHandSvg
   truthEn.style.cssText =
-    "position:absolute;left:0;right:0;top:50%;margin:0;transform:translateY(-50%);text-align:center;" +
-    "font-family:'Caveat','Permanent Marker',cursive;font-weight:500;font-size:21px;line-height:31px;color:#544e44;letter-spacing:-.2px;white-space:nowrap;"
+    'position:absolute;left:17.6px;top:15.05px;width:274.25px;height:20.47px;object-fit:contain;pointer-events:none;'
   truthSticker.appendChild(truthEn)
   // 中文译文：静态层（不跟贴纸翻折），lie/truth 同位叠放，揭开后做交叉渐变
   const lieZh = document.createElement('p')
   lieZh.style.cssText =
-    "position:absolute;left:0;right:0;top:66px;margin:0;text-align:center;font-family:'Source Han Sans CN','PingFang SC',sans-serif;" +
-    'font-size:20px;line-height:23px;color:#544e44;opacity:.5;transition:opacity .3s ease-out;white-space:nowrap;will-change:opacity;'
+    "position:absolute;left:0;right:0;top:66px;margin:0;text-align:center;font-family:'JiangCheng XieHei','PingFang SC',sans-serif;" +
+    'font-weight:200;font-size:20px;line-height:23px;color:#544e44;opacity:.5;transform:translateX(-5.5px);transition:opacity .3s ease-out;white-space:nowrap;will-change:opacity;'
   truthLayer.appendChild(lieZh)
   const truthZh = document.createElement('p')
   truthZh.style.cssText =
-    "position:absolute;left:0;right:0;top:66px;margin:0;text-align:center;font-family:'Source Han Sans CN','PingFang SC',sans-serif;" +
-    'font-size:20px;line-height:23px;color:#544e44;opacity:0;transition:opacity .3s ease-out;white-space:nowrap;will-change:opacity;'
+    "position:absolute;left:0;right:0;top:66px;margin:0;text-align:center;font-family:'JiangCheng XieHei','PingFang SC',sans-serif;" +
+    'font-weight:200;font-size:20px;line-height:23px;color:#544e44;opacity:0;transform:translateX(-8.5px);transition:opacity .3s ease-out;white-space:nowrap;will-change:opacity;'
   truthLayer.appendChild(truthZh)
 
   // ── 上层：甜言（可撕）。整层位置固定 —— 只允许水平右→左揭开，折痕恒竖直
@@ -155,7 +156,7 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
   const lieEn = document.createElement('p')
   lieEn.style.cssText =
     "position:absolute;left:6px;right:6px;top:50%;margin:0;transform:translateY(-50%);text-align:center;" +
-    "font-family:'Source Serif Pro',Georgia,serif;font-weight:600;font-size:19px;letter-spacing:-.3px;line-height:31px;color:#544e44;white-space:nowrap;"
+    "font-family:'Source Serif Pro',Georgia,serif;font-weight:500;font-size:20px;letter-spacing:0;line-height:31px;color:#544e44;white-space:nowrap;"
   stuck.appendChild(lieEn)
   // flap：翻起的部分。与 stuck 同尺寸/同纹理（保证折痕处纹理连续），靠 clip-path 切出
   // "折痕右侧"区域，再绕**折痕轴**（与起手方向垂直的页面内轴）做 3D 旋转 90°→180°
@@ -191,7 +192,7 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
     })
     lieEn.textContent = params.lieEn
     lieZh.textContent = params.lieZh
-    truthEn.textContent = params.truthEn
+    truthEn.alt = params.truthEn
     truthZh.textContent = params.truthZh
   }
 
@@ -260,6 +261,8 @@ export function mountPrideSkin(container: HTMLElement, initial: PrideSkinParams)
     lieLayer.style.opacity = fade.toFixed(3)
     // 二态译文切换
     const peeled = p >= 0.95
+    titleEn.style.color = peeled ? '#8d8e9d' : '#565574'
+    titleZh.style.color = peeled ? '#b79f82' : '#7d6355'
     lieZh.style.opacity = peeled ? '0' : '.5'
     truthZh.style.opacity = peeled ? '.5' : '0'
   }
@@ -386,6 +389,6 @@ function ensureStyles() {
   l.id = 'pride-skin-fonts'
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Source+Serif+Pro:wght@400;600&family=Caveat:wght@500;600&display=swap'
+    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Source+Serif+Pro:wght@300;500&family=Kalam:wght@400&display=swap'
   document.head.appendChild(l)
 }

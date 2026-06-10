@@ -52,7 +52,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   col.appendChild(titleEn)
   const titleZh = document.createElement('p')
   titleZh.style.cssText =
-    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:600;font-size:28px;color:#c0c9ca;white-space:nowrap;text-shadow:0 4px 4px rgba(0,0,0,.25);"
+    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:28px;color:#c0c9ca;white-space:nowrap;text-shadow:0 4px 4px rgba(0,0,0,.25);"
   col.appendChild(titleZh)
 
   // 正文容器（top=204 bottom=240 → 与底部 CTA 留 16px 间距、不重叠；overflow-y:auto 长文可滚）
@@ -60,7 +60,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   const bodyBox = document.createElement('div')
   bodyBox.className = 'sherlock-body'
   bodyBox.style.cssText =
-    "position:absolute;left:28px;top:204px;bottom:240px;width:306px;font-family:'Source Serif Pro',Georgia,serif;font-weight:400;font-size:20px;line-height:31px;color:#c0c9ca;" +
+    "position:absolute;left:28px;top:204px;bottom:240px;width:306px;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:20px;line-height:31px;color:#c0c9ca;" +
     'overflow-y:auto;pointer-events:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;transition:filter .35s ease, opacity .35s ease, bottom .35s ease;'
   col.appendChild(bodyBox)
 
@@ -76,7 +76,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   avatarEl.src = AVATARS[0]
   avatarEl.style.cssText = 'width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;'
   const nameEl = document.createElement('span')
-  nameEl.style.cssText = "font-family:'Source Serif Pro',Georgia,serif;font-size:22px;line-height:22px;color:#c0c9ca;white-space:nowrap;"
+  nameEl.style.cssText = "font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:22px;line-height:22px;color:#c0c9ca;white-space:nowrap;"
   bubble.appendChild(avatarEl)
   bubble.appendChild(nameEl)
   col.appendChild(bubble)
@@ -263,7 +263,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
     text.split(/(\*\*[^*]+?\*\*)/g).forEach((seg) => {
       if (seg.startsWith('**') && seg.endsWith('**')) {
         const sp = document.createElement('span')
-        sp.style.cssText = `font-weight:700;color:${color};`
+        sp.style.cssText = `font-weight:600;color:${color};`
         sp.textContent = seg.slice(2, -2)
         target.appendChild(sp)
       } else if (seg) {
@@ -442,7 +442,7 @@ function ensureStyles() {
   l.id = 'sherlock-skin-fonts'
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;500&family=Source+Serif+Pro:wght@400;700&family=UnifrakturMaguntia&display=swap'
+    'https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;500&family=Source+Serif+Pro:wght@300;600&family=UnifrakturMaguntia&display=swap'
   document.head.appendChild(l)
   const st = document.createElement('style')
   st.id = 'sherlock-skin-style'
