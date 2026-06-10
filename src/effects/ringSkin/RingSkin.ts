@@ -24,6 +24,10 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   bg.muted = false
   bg.playsInline = true
   bg.preload = 'auto'
+  // 咒语激发速度 = 2×：视频以 2 倍速推进，fill(currentTime/duration) 随之翻倍。
+  // defaultPlaybackRate 一并设置——按 HTML 规范，资源加载后 playbackRate 会被复位为 defaultPlaybackRate。
+  bg.defaultPlaybackRate = 2
+  bg.playbackRate = 2
   bg.setAttribute('playsinline', '')
   bg.setAttribute('webkit-playsinline', '')
   // 视频相对屏幕(375×794)的位置/尺寸取自 Figma node 345:743（x=-28 y=0 w=444 h=790）；溢出由 root overflow:hidden 裁掉
