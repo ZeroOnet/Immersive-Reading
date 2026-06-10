@@ -73,13 +73,13 @@ export function mountVeilSkin(container: HTMLElement, initial: VeilSkinParams): 
   col.appendChild(titleEn)
   const titleZh = document.createElement('p')
   titleZh.style.cssText =
-    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:600;font-size:33px;color:#d6c8b1;white-space:nowrap;"
+    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:33px;color:#d6c8b1;white-space:nowrap;"
   col.appendChild(titleZh)
 
   // 正文段落（解释卡打开时被模糊+淡化，但不再是点击触发区）
   const body = document.createElement('p')
   body.style.cssText =
-    "position:absolute;left:28px;top:209px;width:256px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-weight:400;font-size:21px;line-height:32px;color:#eae5dc;white-space:pre-wrap;pointer-events:none;" +
+    "position:absolute;left:28px;top:209px;width:256px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21px;line-height:32px;color:#eae5dc;white-space:pre-wrap;pointer-events:none;" +
     'transition:filter .35s ease, opacity .35s ease;will-change:filter,opacity;'
   col.appendChild(body)
 
@@ -313,7 +313,7 @@ function ensureStyles() {
   l.id = 'veil-skin-fonts'
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Noto+Sans+SC:wght@300;500;700;900&family=Source+Serif+Pro:wght@400&family=Kalam:wght@300;400;700&display=swap'
+    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Noto+Sans+SC:wght@300;500;700;900&family=Source+Serif+Pro:wght@300&family=Kalam:wght@300;400;700&display=swap'
   document.head.appendChild(l)
   // 呼吸灯：1.6s 一次的 scale + opacity + drop-shadow 循环
   const st = document.createElement('style')

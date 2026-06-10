@@ -11,15 +11,14 @@ const STAGE_W = 1470
 const viewport = document.getElementById('portal-viewport')!
 const pages = Array.from(viewport.querySelectorAll<HTMLElement>('.page'))
 
-// .fill 页用 CSS 铺满窗口(100vw×100vh)，无需 transform；只有 .poster 页按窗口等比缩放居中
+const STAGE_H = 956
+
+// 所有页面都保持 Figma 设计画布尺寸，再按窗口等比缩放居中。
 function fit() {
-  // 演示真机：原生 375×794，顶部锚定 18.72%(设计位置)，底部受窗口约束 → 高度不足时从顶部等比压缩
-  // （只缩不放大）。可用高度 = 窗口高 ×(1-0.1872) - 16px 底部留白。
-  const phoneScale = Math.min(1, (window.innerHeight * (1 - 0.1872) - 16) / 794)
-  document.documentElement.style.setProperty('--phone-scale', phoneScale.toFixed(4))
+  document.documentElement.style.setProperty('--phone-scale', '1')
   for (const p of pages) {
-    if (!p.classList.contains('poster')) continue
-    const s = Math.min(window.innerWidth / STAGE_W, window.innerHeight / p.offsetHeight)
+    const pageH = p.classList.contains('poster') ? p.offsetHeight : STAGE_H
+    const s = Math.min(window.innerWidth / STAGE_W, window.innerHeight / pageH)
     p.style.transform = `translate(-50%, -50%) scale(${s})`
   }
 }
@@ -256,13 +255,14 @@ document.querySelector<HTMLElement>('.m3-shake-btn')?.addEventListener('click', 
 // 模块四·言下之意（m4-undertone）：实跑 veilSkin。
 // 演示屏内点击「The dog it was that died」三段台词 / 呼吸点会 toggle veilSkin 的 tooltipOpen，
 // 这里 rAF 轮询 tooltipOpen，把大屏左侧 (原句 ↔ 解释卡) 同步切换：>0.5 → .is-after
-let undertoneHandle: (EffectHandle<unknown> & { getParams?(): { tooltipOpen?: number } }) | null = null
+type UndertoneParams = { tooltipOpen?: number }
+let undertoneHandle: EffectHandle<UndertoneParams> | null = null
 let undertoneRaf = 0
 function mountUndertone() {
   if (undertoneHandle) return
   const card = document.getElementById('m4u-card')
   const sect = document.querySelector<HTMLElement>('.m4-undertone')
-  const vk = effect('veilSkin')
+  const vk = effect('veilSkin') as EffectModule<UndertoneParams> | undefined
   if (!card || !sect || !vk) return
   undertoneHandle = vk.mount(card, structuredClone(vk.defaultParams))
   sect.classList.remove('is-after')
@@ -286,7 +286,8 @@ function unmountUndertone() {
 // 大屏：迷雾 canvas（同 veilSmokeSkin 粒子做法，smoke.png × N 旋转面片）+ Kalam 台词 A↔B
 // 点击演示屏烟雾 或 大屏迷雾区，都 toggle veilSmokeSkin.state（演示屏内自带 click→tweenState；
 // 大屏点击通过 demoStep(1) 进入同一条 tween）。rAF 轮询 state 把 .is-after 同步到大屏，文字 crossfade
-let veilSmokeHandle: (EffectHandle<unknown> & { getParams?(): { state?: number } }) | null = null
+type VeilSmokeParams = { state?: number }
+let veilSmokeHandle: EffectHandle<VeilSmokeParams> | null = null
 let veilSmokeRaf = 0
 let veilSmokeFogRaf = 0
 function mountVeilSmoke() {
@@ -295,7 +296,7 @@ function mountVeilSmoke() {
   const sect = document.querySelector<HTMLElement>('.m4-veil-smoke')
   const fogWrap = sect?.querySelector<HTMLElement>('.m4-fog')
   const canvas = sect?.querySelector<HTMLCanvasElement>('.m4-fog-canvas')
-  const vsk = effect('veilSmokeSkin')
+  const vsk = effect('veilSmokeSkin') as EffectModule<VeilSmokeParams> | undefined
   if (!card || !sect || !fogWrap || !canvas || !vsk) return
 
   veilSmokeHandle = vsk.mount(card, structuredClone(vsk.defaultParams))
@@ -474,7 +475,8 @@ function mountVeilSmoke() {
 // 演示屏 prideSkin 自带「水平拖动揭开」交互（peel 0→1）。大屏每帧把 peel 推到 clip-path：
 // 谎言贴纸（cardA，在上）从右往左被裁掉，露出底层真话（cardB），物理进度跟 phone 1:1 同步。
 // 中文译文 a/b 双语用线性 opacity（最大 60%，与设计稿一致）。
-let prideHandle: (EffectHandle<unknown> & { getParams?(): { peel?: number } }) | null = null
+type PrideParams = { peel?: number }
+let prideHandle: EffectHandle<PrideParams> | null = null
 let prideRaf = 0
 function mountPride() {
   if (prideHandle) return
@@ -483,7 +485,7 @@ function mountPride() {
   const cardA = sect?.querySelector<HTMLElement>('.m4-pride-card-a')
   const zhA = sect?.querySelector<HTMLElement>('.m4-pride-zh-a')
   const zhB = sect?.querySelector<HTMLElement>('.m4-pride-zh-b')
-  const pr = effect('prideSkin')
+  const pr = effect('prideSkin') as EffectModule<PrideParams> | undefined
   if (!card || !sect || !cardA || !zhA || !zhB || !pr) return
   prideHandle = pr.mount(card, structuredClone(pr.defaultParams))
   const sync = () => {

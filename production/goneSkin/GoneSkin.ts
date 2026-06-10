@@ -92,12 +92,12 @@ export function mountGoneSkin(container: HTMLElement, initial: GoneSkinParams): 
 
   const subtitle = document.createElement('p')
   subtitle.style.cssText =
-    "position:absolute;left:28px;top:180px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:28px;"
+    "position:absolute;left:28px;top:180px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:400;font-size:28px;"
   col.appendChild(subtitle)
 
   const bodyBox = document.createElement('div')
   bodyBox.style.cssText =
-    "position:absolute;left:28px;top:238px;width:301px;font-family:'Source Serif Pro',Georgia,serif;font-size:21px;line-height:31px;"
+    "position:absolute;left:28px;top:238px;width:301px;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21px;line-height:31px;"
   col.appendChild(bodyBox)
 
   const quote = document.createElement('p')
@@ -470,6 +470,6 @@ function ensureFonts() {
   const l = document.createElement('link')
   l.id = 'gone-skin-fonts'
   l.rel = 'stylesheet'
-  l.href = 'https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400&family=Kalam:wght@400&display=swap'
+  l.href = 'https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@300&family=Kalam:wght@400&display=swap'
   document.head.appendChild(l)
 }

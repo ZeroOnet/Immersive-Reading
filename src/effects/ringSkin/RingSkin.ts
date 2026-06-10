@@ -80,12 +80,12 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
 
   const titleEl = document.createElement('p')
   titleEl.style.cssText =
-    "position:absolute;left:28px;top:206px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:30px;letter-spacing:6px;"
+    "position:absolute;left:28px;top:206px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:400;font-size:30px;letter-spacing:6px;"
   col.appendChild(titleEl)
 
   const bodyP = document.createElement('p')
   bodyP.style.cssText =
-    "position:absolute;left:28px;top:270px;width:286px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:21px;line-height:31px;"
+    "position:absolute;left:28px;top:270px;width:286px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21px;line-height:31px;"
   col.appendChild(bodyP)
 
   // 召唤提示（Figma 38:695）：橙色发光胶囊 + 中文 hint，置于正文与咒语之间。
@@ -110,7 +110,7 @@ export function mountRingSkin(container: HTMLElement, initial: RingSkinParams): 
   hintText.textContent = '念出铭文，唤醒魔戒之力'
   hintText.style.cssText =
     "position:absolute;left:0;right:0;top:50%;margin:0;transform:translateY(-50%);text-align:center;" +
-    "font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:18px;letter-spacing:1.08px;" +
+    "font-family:'Source Han Serif CN','Songti SC',serif;font-weight:400;font-size:18px;letter-spacing:1.08px;" +
     'color:rgba(243,179,119,.8);text-shadow:0 0 2px rgba(255,208,147,.6);white-space:nowrap;'
   hintBox.appendChild(hintText)
   col.appendChild(hintBox)
@@ -528,6 +528,6 @@ function ensureStyles() {
   const l = document.createElement('link')
   l.id = 'ring-skin-fonts'
   l.rel = 'stylesheet'
-  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=Source+Serif+Pro:wght@400&display=swap'
+  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=Source+Serif+Pro:wght@300&display=swap'
   document.head.appendChild(l)
 }

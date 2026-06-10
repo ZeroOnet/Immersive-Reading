@@ -31,12 +31,12 @@ export interface OldManSkinParams {
 const BODY = `Have you ever stood where the sea seems endless, and felt how solitude presses in even as courage rises up? Then, step onto this small boat and enter a timeless story of an old fisherman who sails far beyond the shore, meeting the vast ocean with nothing but his skill, his endurance, and his unyielding will.`
 
 export const defaultParams: OldManSkinParams = {
-  title: 'The Old Man and the Sea',
+  title: 'The Old Man\nAnd the Sea',
   subtitle: '老人与海',
   body: BODY,
-  titleColor: '#c5bba5',
+  titleColor: '#ddc4aa',
   subtitleColor: '#afafaf',
-  bodyColor: '#c5bba5',
+  bodyColor: '#ddc4aa',
   scrim: 0.28,
   bobAmp: 9,
   bobSpeed: 1,

@@ -107,18 +107,18 @@ export function mountOldManSkin(
   const title = document.createElement('h1')
   title.className = 'oms-text'
   title.style.cssText =
-    "margin:0 0 0 24px;width:260px;font-family:'Cormorant',Georgia,serif;font-weight:700;font-size:48px;line-height:48px;"
+    "margin:0 0 0 24px;width:322px;font-family:'Cormorant',Georgia,serif;font-weight:700;font-size:48px;line-height:44px;white-space:pre-line;"
   floatInner.appendChild(title)
 
   const subtitle = document.createElement('p')
   subtitle.className = 'oms-text'
   subtitle.style.cssText =
-    "margin:8px 0 0 28px;font-family:'MiSans VF','PingFang SC',system-ui,sans-serif;font-size:20px;"
+    "margin:6px 0 0 28px;font-family:'Source Han Serif CN','Noto Serif SC','Songti SC',serif;font-weight:500;font-size:33px;line-height:39px;white-space:nowrap;"
   floatInner.appendChild(subtitle)
 
   const bodyBox = document.createElement('div')
   bodyBox.style.cssText =
-    "margin:24px 46px 0 28px;font-family:'Source Serif Pro',Georgia,serif;font-size:21px;line-height:31px;"
+    "margin:20px 46px 0 28px;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21.5px;line-height:33px;"
   floatInner.appendChild(bodyBox)
 
   // ── 画布状态 ──
@@ -463,7 +463,7 @@ function ensureFonts() {
   const l = document.createElement('link')
   l.id = 'oldman-skin-fonts'
   l.rel = 'stylesheet'
-  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@700&family=Source+Serif+Pro:wght@400&display=swap'
+  l.href = 'https://fonts.googleapis.com/css2?family=Cormorant:wght@700&family=Noto+Serif+SC:wght@500&family=Source+Serif+Pro:wght@300&display=swap'
   document.head.appendChild(l)
 }
 function ensureStyle() {

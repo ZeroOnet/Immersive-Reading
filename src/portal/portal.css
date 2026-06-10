@@ -13,7 +13,7 @@
 @font-face {
   font-family: "HW Animo Trial";
   src: url("./assets/fonts/HWAnimoTRIAL-R500.ttf") format("truetype");
-  font-weight: 450;
+  font-weight: 500;
   font-display: block;
 }
 @font-face {
@@ -26,6 +26,18 @@
   font-family: "JiangCheng XieHei";
   src: url("./assets/fonts/JiangChengXieHei-300W.ttf") format("truetype");
   font-weight: 300;
+  font-display: block;
+}
+@font-face {
+  font-family: "JiangCheng XieHei";
+  src: url("./assets/fonts/JiangChengXieHei-200W.ttf") format("truetype");
+  font-weight: 200;
+  font-display: block;
+}
+@font-face {
+  font-family: "JiangCheng XieHei";
+  src: url("./assets/fonts/JiangChengXieHei-200W.ttf") format("truetype");
+  font-weight: 100;
   font-display: block;
 }
 
@@ -63,7 +75,7 @@ h2 {
 /* —— 固定视口 + 分页（iOS isPagingEnabled 式）——
    视口 fixed 铺满窗口；仅 .active 页 opacity:1 可见，翻页时 crossfade 替换。
    两类页面：
-   .fill   —— 铺满真实窗口(100vw×100vh)，元素按百分比/贴边响应式重排（首屏+模块页）
+   .fill   —— 1470×956 设计画布居中等比缩放（首屏+模块页，main.ts 设 transform）
    .poster —— 1470×设计高画布居中等比缩放（散落构图的尾屏/横排，main.ts 设 transform）*/
 #portal-viewport {
   position: fixed;
@@ -84,11 +96,13 @@ h2 {
   opacity: 1;
   pointer-events: auto;
 }
-/* 铺满窗口（响应式） */
+/* 设计画布：所有百分比定位都以 Figma 的 1470×956 为基准 */
 .page.fill {
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
+  left: 50%;
+  top: 50%;
+  width: 1470px;
+  height: 956px;
+  transform-origin: center center;
 }
 /* 海报式：固定画布居中，main.ts 设 transform: translate(-50%,-50%) scale() */
 .page.poster {
@@ -114,7 +128,7 @@ h2 {
   color: var(--paper);
   font-family: "HW Animo Trial", sans-serif;
   font-size: 118px;
-  font-weight: 450;
+  font-weight: 500;
   line-height: 142px;
   letter-spacing: 0;
   white-space: nowrap;
@@ -156,7 +170,7 @@ h2 {
   color: var(--paper);
   font-family: "JiangCheng XieHei", sans-serif;
   font-size: 92px;
-  font-weight: 400;
+  font-weight: 200;
   line-height: 92px;
   letter-spacing: 0;
   white-space: nowrap;
@@ -189,7 +203,7 @@ h2 {
   left: 26px;
   top: 26px;
   font-size: 24px;
-  font-weight: 450;
+  font-weight: 350;
   line-height: 32px;
   white-space: nowrap;
 }
@@ -199,7 +213,7 @@ h2 {
   top: 28px;
   transform: translateX(-50%);
   font-size: 20px;
-  font-weight: 450;
+  font-weight: 350;
   line-height: 24px;
   text-align: center;
   white-space: nowrap;
@@ -224,12 +238,12 @@ h2 {
 .member-light {
   color: #0a0a09;
   background: var(--badge-light);
-  font-weight: 450;
+  font-weight: 350;
 }
 .member-dark {
   color: #e2e2de;
   background: var(--badge-dark);
-  font-weight: 400;
+  font-weight: 300;
 }
 .member-inner {
   display: flex;
@@ -278,7 +292,7 @@ h2 {
   color: var(--paper);
   font-family: "HW Animo Trial", sans-serif;
   font-size: 118px;
-  font-weight: 450;
+  font-weight: 500;
   line-height: 142px;
   letter-spacing: 0;
   text-align: center;
@@ -358,7 +372,7 @@ h2 {
   color: rgb(228 228 225 / 80%);
   font-family: "JiangCheng XieHei", sans-serif;
   font-size: 21px;
-  font-weight: 300;
+  font-weight: 100;
   line-height: 28px;
   letter-spacing: 0;
   white-space: nowrap;
@@ -488,7 +502,7 @@ h2 {
   left: 9.93%;
   top: 16.32%;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 200;
   font-size: 42px;
   line-height: 56px;
   letter-spacing: -0.42px;
@@ -506,7 +520,7 @@ h2 {
   top: -2.82%;
   margin: 0;
   font-family: "HW Animo Trial", sans-serif;
-  font-weight: 450;
+  font-weight: 500;
   font-size: 140px;
   line-height: 168px;
   color: var(--paper);
@@ -517,7 +531,7 @@ h2 {
   z-index: 2;
   right: 0.41%;
   top: -1.99%;
-  font-family: "JiangCheng XieHei", sans-serif;
+  font-family: "HW Animo Trial", sans-serif;
   font-weight: 400;
   font-size: 124px;
   line-height: 149px;
@@ -578,7 +592,7 @@ h2 {
   left: 27.01%;
   top: 52.3%;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 30px;
   line-height: 42px;
   letter-spacing: -0.3px;
@@ -588,7 +602,7 @@ h2 {
   left: 21.63%;
   top: 74.27%;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 35px;
   line-height: 42px;
   letter-spacing: -0.35px;
@@ -602,7 +616,7 @@ h2 {
   top: 87.97%;
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 28px;
   line-height: 37px;
   color: rgb(228 228 225 / 40%);
@@ -610,7 +624,7 @@ h2 {
 }
 .m1-cite-en {
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
 }
 
 /* ============================================================
@@ -657,7 +671,7 @@ h2 {
   left: 20.95%;
   top: 38.39%;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 32px;
   line-height: 34px;
   letter-spacing: -0.32px;
@@ -668,7 +682,7 @@ h2 {
   top: 75.63%;
   transform: translateX(-50%);
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 34px;
   line-height: 42px;
   letter-spacing: -0.34px;
@@ -709,7 +723,7 @@ h2 {
   left: 24.42%;
   top: 39.02%;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 32px;
   line-height: 34px;
   letter-spacing: -0.32px;
@@ -720,7 +734,7 @@ h2 {
   top: 76.36%;
   transform: translateX(-50%);
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 35px;
   line-height: 42px;
   letter-spacing: -0.35px;
@@ -804,7 +818,7 @@ h2 {
 .m2-label-title {
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 500;
+  font-weight: 300;
   font-size: 49px;
   line-height: 74px;
   letter-spacing: -0.49px;
@@ -814,7 +828,7 @@ h2 {
 .m2-label-sub {
   margin: 0;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 34px;
   line-height: 34px;
   letter-spacing: -0.34px;
@@ -852,7 +866,7 @@ h2 {
 }
 .m2-step-title {
   font-family: "MiSans VF", sans-serif;
-  font-weight: 500;
+  font-weight: 300;
   font-size: 34px;
   line-height: 46px;
   letter-spacing: -0.34px;
@@ -861,7 +875,7 @@ h2 {
 }
 .m2-step-sub {
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 28px;
   line-height: 34px;
   letter-spacing: -0.28px;
@@ -881,7 +895,7 @@ h2 {
   bottom: 6.17%;
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 30px;
   line-height: 42px;
   letter-spacing: -0.3px;
@@ -916,7 +930,7 @@ h2 {
   top: 16.32%;
   margin: 0;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 200;
   font-size: 42px;
   line-height: 56px;
   letter-spacing: -0.42px;
@@ -935,7 +949,7 @@ h2 {
   bottom: 32.32%;
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 34px;
   line-height: 46px;
   letter-spacing: -0.34px;
@@ -968,7 +982,7 @@ h2 {
 }
 .m3-shake-title {
   font-family: "MiSans VF", sans-serif;
-  font-weight: 500;
+  font-weight: 300;
   font-size: 38px;
   line-height: 46px;
   letter-spacing: -0.38px;
@@ -983,7 +997,7 @@ h2 {
 }
 .m3-shake-sub {
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 28px;
   line-height: 34px;
   letter-spacing: -0.28px;
@@ -1088,7 +1102,7 @@ h2 {
   top: 16.32%;   /* 156/956 */
   margin: 0;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 200;
   font-size: 42px;
   line-height: 56px;
   letter-spacing: -0.42px;
@@ -1102,7 +1116,7 @@ h2 {
   top: 46.34%;   /* 443/956 */
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 38px;
   letter-spacing: -0.38px;
   color: rgb(228 228 225 / 80%);
@@ -1128,7 +1142,7 @@ h2 {
 .m4-quote-zh {
   margin: 12px 0 0 1.5em;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 38px;
   line-height: 38px;
   letter-spacing: 0.56px;
@@ -1138,7 +1152,7 @@ h2 {
 /* after 状态可见的解释卡（米色卡，对应 veilSkin noteBox 的放大版，342:42/43/44/45/46）
    两层结构：外壳只做定位 + 文字层；内嵌 ::before 做「带 blur 的米色背板」——
    blur 不能直接加在外壳，否则文字也会糊（veilSkin 同款写法）。
-   字体：JiangChengXieHei 只载了 300/400 两个字重，500/700/900 会回退到系统黑体 → 失去斜黑感。
+   字体：JiangChengXieHei 只载了 200/300/400 三个字重，500/700/900 会回退到系统黑体 → 失去斜黑感。
    故用 Noto Sans SC 系列 + font-style:italic 近似那个「斜」；加粗一律靠字重，不靠 css 斜体。 */
 .m4-note {
   position: absolute;
@@ -1218,7 +1232,7 @@ h2 {
   top: 86.51%;    /* 827/956 */
   margin: 0;
   font-family: "MiSans VF", sans-serif;
-  font-weight: 400;
+  font-weight: 200;
   font-size: 30px;
   line-height: 42px;
   letter-spacing: -0.3px;
@@ -1312,7 +1326,7 @@ h2 {
   left: 50%;
   margin: 0;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 38px;
   line-height: 38px;
   text-align: center;
@@ -1448,7 +1462,7 @@ h2 {
   transform: translateX(-50%);
   margin: 0;
   font-family: "JiangCheng XieHei", sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 38px;
   line-height: 38px;
   text-align: center;
@@ -1470,4 +1484,21 @@ h2 {
 /* phone 卡片：右半中位 */
 .m4-veil-smoke-card {
   left: 67.27%; /* 988.83/1470 */
+}
+
+/* ============================================================
+   Figma Prototype · 交互结尾页
+   ============================================================ */
+.figma-prototype-page {
+  background: #000;
+}
+
+.figma-prototype-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
 }

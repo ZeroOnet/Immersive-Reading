@@ -91,13 +91,13 @@ export function mountVeilSmokeSkin(
   col.appendChild(titleEn)
   const titleZh = document.createElement('p')
   titleZh.style.cssText =
-    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:600;font-size:33px;color:#b48d5d;white-space:nowrap;"
+    "position:absolute;left:28px;top:144px;margin:0;font-family:'Source Han Serif CN','Songti SC',serif;font-weight:500;font-size:33px;color:#b48d5d;white-space:nowrap;"
   col.appendChild(titleZh)
 
   // 正文
   const body = document.createElement('p')
   body.style.cssText =
-    "position:absolute;left:28px;top:209px;width:256px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-weight:400;font-size:21px;line-height:32px;color:#b3b0a6;white-space:pre-wrap;"
+    "position:absolute;left:28px;top:209px;width:256px;margin:0;font-family:'Source Serif Pro',Georgia,serif;font-weight:300;font-size:21px;line-height:32px;color:#b3b0a6;white-space:pre-wrap;"
   col.appendChild(body)
 
   // 烟雾画布全屏：上方留出空间让 plane 自然淡出，避免硬切；生成区域仍只在底部 340px
@@ -483,6 +483,6 @@ function ensureStyles() {
   l.id = 'veil-smoke-fonts'
   l.rel = 'stylesheet'
   l.href =
-    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Source+Serif+Pro:wght@400&family=Kalam:wght@300;400;700&display=swap'
+    'https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500&family=Source+Serif+Pro:wght@300&family=Kalam:wght@300;400;700&display=swap'
   document.head.appendChild(l)
 }

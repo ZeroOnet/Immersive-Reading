@@ -30,7 +30,7 @@ export const defaultParams: WutheringSkinParams = {
   subtitle: '呼啸山庄',
   body: BODY,
   titleColor: '#d4cfc9',
-  subtitleColor: '#afafaf',
+  subtitleColor: '#cc9f74',
   bodyColor: '#e5e2df',
   scrim: 0.28,
   windIntensity: 0.3,
