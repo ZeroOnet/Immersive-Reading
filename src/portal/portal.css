@@ -1432,6 +1432,19 @@ h2 {
   inset: 0;
   background: #000;
 }
+/* 大屏左侧风景背景：图片按自身尺寸显示（不拉伸、保持自身高度），左下角对齐屏幕左下。
+   背景区右边缘(trailing) = phone 左边缘(leading)：phone center 67.27% − 半宽(187.5/1470) ≈ 54.51%。
+   区域内多余/超高部分裁掉；透明顶部自然融入黑底。 */
+.m4-pride-bg::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 54.51%;
+  background: url("./assets/images/pride-landscape.png") left bottom / auto no-repeat;
+  pointer-events: none;
+}
 
 /* 真话卡（cardB）在下层始终可见；谎言贴纸（cardA）盖在上面，由 main.ts rAF 把 peel 推到 clip-path：
    peel 0→1 时谎言从右往左被裁掉，逐步露出底下的真话。和 phone 的 peel 物理同步。 */
