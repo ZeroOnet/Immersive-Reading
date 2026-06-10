@@ -18,9 +18,22 @@
         <section class="page fill hero active" aria-label="2026扇贝黑客松大赛首屏">
           <h1 class="english-title">INTERACTIVE STORYTELLING</h1>
 
-          <div class="book-stack" aria-hidden="true">
+          <!-- 演示屏 phone：未播放时显示原静态截图(book-front)，点击播放图标才显示并播放视频。
+               不自动播放、不循环；播放中隐藏图标，播完回到静态截图并重现图标。 -->
+          <div class="book-stack" id="hero-stack" aria-label="首页演示屏：扇贝阅读 App 开屏演示">
             <div class="book-cover book-back"></div>
             <div class="book-cover book-front"></div>
+            <video
+              class="book-cover book-video"
+              id="hero-demo-video"
+              src="./src/portal/assets/video/hero-demo.mp4"
+              preload="auto"
+              playsinline
+              webkit-playsinline
+            ></video>
+            <button class="hero-play" id="hero-demo-play" type="button" aria-label="播放演示视频">
+              <img src="./src/portal/assets/images/play-icon.png" alt="" />
+            </button>
           </div>
 
           <div class="chinese-title" aria-label="多模态叙事 阅读新体验">

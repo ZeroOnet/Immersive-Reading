@@ -162,6 +162,45 @@ h2 {
   z-index: 1;
   background-image: url("./assets/images/book-old-man-sea.png");
 }
+/* 演示屏视频：默认隐藏（显示底层静态截图 book-front），播放时淡入覆盖；圆角继承自 .book-cover */
+.book-video {
+  z-index: 2;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.book-stack.is-playing .book-video {
+  opacity: 1;
+}
+
+/* 居中播放图标：用设计提供的图片；未播放时显示，播放中隐藏 */
+.hero-play {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.hero-play img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.hero-play:hover {
+  opacity: 0.86;
+}
+.book-stack.is-playing .hero-play {
+  opacity: 0;
+  pointer-events: none;
+}
 
 .chinese-title {
   position: absolute;
@@ -1376,19 +1415,6 @@ h2 {
   inset: 0;
   background: #000;
 }
-.m4-pride-bg::before {
-  /* 风景图占左下 ~790×583 区域，opacity 60%；顶/底淡出与黑底融合 */
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 43.51%; /* 416/956 */
-  width: 53.74%; /* 790/1470 */
-  height: 60.98%; /* 583/956 */
-  background: url("./assets/images/module4-p3-bg.png") center / cover no-repeat;
-  opacity: 0.6;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
-}
 
 /* 真话卡（cardB）在下层始终可见；谎言贴纸（cardA）盖在上面，由 main.ts rAF 把 peel 推到 clip-path：
    peel 0→1 时谎言从右往左被裁掉，逐步露出底下的真话。和 phone 的 peel 物理同步。 */
@@ -1407,31 +1433,34 @@ h2 {
 }
 .m4-pride-card-b { z-index: 3; } /* 真话在底 */
 .m4-pride-card-a { z-index: 4; } /* 谎言在上，clip-path 控制可见区域 */
-/* 信笺（甜言态，before）：暖米色光泽 + 内嵌暗影 */
+/* 甜言贴纸（before）：与 phone 的 stuck 一模一样——stickerPaper 纸纹 + 同款白色高光边，仅按大屏放大 ~1.772×。
+   纹理裁切对齐 phone（bg-size 375×577、bg-pos -28×-445）等比放大 ×1.772。 */
 .m4-pride-card-a {
-  background: linear-gradient(180deg, #ede1d0 0%, #d6c2a2 60%, #c4b094 100%);
-  box-shadow:
-    inset 1.5px 1.5px 3px rgb(0 0 0 / 18%),
-    3px -2px 2px rgb(255 255 255 / 30%),
-    0 6px 18px rgb(0 0 0 / 35%);
+  background-image: url("../effects/prideSkin/stickerPaper.png");
+  background-repeat: no-repeat;
+  background-size: 664.4px 1022.2px;
+  background-position: -49.6px -788.4px;
+  box-shadow: 3.5px -1.8px 1.8px 0 rgb(255 255 255 / 90%);
 }
-/* 便签（真话态，after）：纯白 + 内嵌暗影；左侧 24.8px 米色侧条 */
+/* 真话便签（after）：与 phone 的 truthSticker 一模一样——纯白 + 同款高光/内阴影，放大 ~1.772× */
 .m4-pride-card-b {
   background: #fff;
   box-shadow:
-    inset 1.5px 1.5px 7px rgb(0 0 0 / 35%),
-    3px -3px 2px rgb(255 255 255 / 40%),
-    0 6px 18px rgb(0 0 0 / 28%);
+    3.5px -3.5px 1.8px 0 rgb(255 255 255 / 40%),
+    inset 1.8px 1.8px 7.1px 0 rgb(0 0 0 / 40%);
 }
 .m4-pride-tab {
-  /* 便签左侧米色侧条（24.8/565.128 ≈ 4.39% 宽，全高） */
+  /* 与 phone 的 truthTape 一模一样：左侧米色蜡纸胶贴（14px 全高，放大 ×1.772 ≈ 24.8px ≈ 4.39%）
+     + 20% 压暗叠层 + 左向投影 */
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 4.39%;
-  background: #e8d6c2;
-  box-shadow: -5px 0 3px rgb(0 0 0 / 24%);
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 20%), rgb(0 0 0 / 20%)),
+    linear-gradient(90deg, rgb(232 214 194), rgb(232 214 194));
+  box-shadow: -7px 0 3.5px 0 rgb(0 0 0 / 24%);
 }
 
 .m4-pride-en {
@@ -1441,8 +1470,9 @@ h2 {
   color: #544e44;
 }
 .m4-pride-en-a {
+  /* 与 phone lieEn 一致：Source Serif Pro 500（35 ≈ 20×1.772, 54 ≈ 31×1.772）*/
   font-family: "Source Serif Pro", Georgia, serif;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 35px;
   line-height: 54px;
 }
@@ -1450,7 +1480,7 @@ h2 {
   /* Figma Hand 替代：Kalam 手写体 + 紧字距 */
   font-family: "Kalam", cursive;
   font-weight: 400;
-  font-size: 32px;
+  font-size: 35px;
   line-height: 54px;
   letter-spacing: -0.35px;
 }

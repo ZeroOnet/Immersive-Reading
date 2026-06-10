@@ -527,7 +527,31 @@ function unmountVeilSmoke() {
   sect?.classList.remove('is-particle')
 }
 
+// ── 首页演示屏 phone：扇贝阅读 App 开屏视频 ──
+// 不自动播放、不循环：点击居中的播放图标才播；播放中隐藏图标；播完暂停在最后一帧并重现图标。
+// is-playing：显示视频、隐藏图标；非 is-playing：显示静态截图(book-front)、显示图标
+const heroVideo = document.getElementById('hero-demo-video') as HTMLVideoElement | null
+const heroPlay = document.getElementById('hero-demo-play')
+const heroStack = document.getElementById('hero-stack')
+if (heroVideo && heroPlay && heroStack) {
+  heroPlay.addEventListener('click', () => {
+    heroVideo.currentTime = 0 // 每次从头播
+    void heroVideo.play()
+  })
+  heroVideo.addEventListener('play', () => heroStack.classList.add('is-playing'))
+  heroVideo.addEventListener('ended', () => heroStack.classList.remove('is-playing'))
+}
+// 进入/离开首页都复位：暂停、回到首帧、回到静态截图并显示播放图标
+function resetHeroVideo() {
+  if (!heroVideo || !heroStack) return
+  heroVideo.pause()
+  heroVideo.currentTime = 0
+  heroStack.classList.remove('is-playing')
+}
+
 function onPageChange(prevPage: HTMLElement, nextPage: HTMLElement) {
+  if (prevPage.classList.contains('hero')) resetHeroVideo()
+  if (nextPage.classList.contains('hero')) resetHeroVideo()
   if (prevPage.classList.contains('m1-wuther')) unmountWuther()
   if (prevPage.classList.contains('m1-oldman')) unmountOldman()
   if (prevPage.classList.contains('m1-gone')) unmountGone()
