@@ -101,7 +101,7 @@ export function mountVeilSmokeSkin(
   col.appendChild(body)
 
   // 烟雾画布全屏：上方留出空间让 plane 自然淡出，避免硬切；生成区域仍只在底部 340px
-  const SMOKE_GEN_H = 42
+  const SMOKE_GEN_H = 10 // 烟雾生成带高度（再压低到 10，烟雾更贴底）
   const smokeWrap = document.createElement('div')
   smokeWrap.style.cssText = 'position:absolute;inset:0;pointer-events:auto;cursor:pointer;z-index:3;'
   root.appendChild(smokeWrap)
