@@ -11,6 +11,7 @@ import revengeRevealVideo from './revengeReveal.mp4'
 const AVATARS = [avatarLestradeImg, avatarHolmesImg]
 
 const DW = 375
+const DH = 794 // 设计高度；内容列按容器宽等比缩放铺满，不再写死 375×794（演示门户里卡片更大）
 
 // 《血字的研究》皮肤（Figma 51:1092 / 51:1501）：
 // 主页 = 标题 + 副标题 + 4 段正文（含蓝字 RACHE / Rachel）+ 底部 CTA。
@@ -35,9 +36,15 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   scrim.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;'
   root.appendChild(scrim)
 
+  // 内容列固定为 375×794 设计尺寸，再按容器宽等比缩放铺满（适应演示门户里更大的卡片）
   const col = document.createElement('div')
-  col.style.cssText = `position:absolute;left:50%;top:0;width:${DW}px;height:100%;transform:translateX(-50%);z-index:2;`
+  col.style.cssText = `position:absolute;left:50%;top:0;width:${DW}px;height:${DH}px;transform-origin:top center;z-index:2;`
   root.appendChild(col)
+  // 让 375×794 设计内容等比缩放铺满容器；clientWidth 取卡片未经页面缩放的真实 CSS 宽度
+  function layout() {
+    const w = container.clientWidth || DW
+    col.style.transform = `translateX(-50%) scale(${(w / DW).toFixed(4)})`
+  }
 
   // 状态栏
   const status = document.createElement('div')
@@ -394,6 +401,7 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
   applyText()
   applyScrim()
   applyStatus()
+  layout()
 
   return {
     update(next) {
@@ -408,7 +416,9 @@ export function mountSherlockSkin(container: HTMLElement, initial: SherlockSkinP
       if (next.scrim !== undefined) applyScrim()
       if (next.timeColor !== undefined) applyStatus()
     },
-    resize() {},
+    resize() {
+      layout()
+    },
     reset() {
       setExpanded(false)
     },

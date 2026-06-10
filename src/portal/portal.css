@@ -874,12 +874,12 @@ h2 {
   color: rgb(228 228 225 / 60%);
 }
 
-/* 模块二第二页 · 三个 STEP 触发按钮（298:10987）*/
+/* 模块二第二页 · 三个 STEP 触发按钮（设计 1:480：x=382.8 y=379.8）*/
 .m2-steps {
   position: absolute;
   z-index: 3;
-  left: 25.99%;
-  top: 45.92%;
+  left: 26.04%;  /* 382.8/1470 */
+  top: 39.73%;   /* 379.8/956（上移，不再与左侧「视觉解谜」标签顶对齐）*/
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -921,6 +921,21 @@ h2 {
   color: var(--paper);
   opacity: 0.4;
   white-space: nowrap;
+}
+
+/* 模块二·血字的研究 demo phone：比标准卡更大、更靠上（设计 1:451：x=853.5 y≈22 390.6×828）。
+   sherlockSkin 自适应容器尺寸，故直接改卡片宽高即可整体放大。 */
+.m2-sherlock-card {
+  left: 71.35%; /* 中心 (853.5+390.6/2)/1470 */
+  top: 2.32%; /* 22.2/956 */
+  width: 390.6px;
+  height: 828px;
+  border-radius: 24.261px;
+}
+/* phone 上移后与右上角标题「亲身参与」重叠，把标题抬到 phone(z4) 之上 */
+.m2-sherlock .m1-title-en,
+.m2-sherlock .m1-title-cn {
+  z-index: 5;
 }
 
 /* 模块二第三页 · 指环王 demo 卡片居中偏右(57.6%)，覆盖 .m1-card 的 left；提示文字 */
